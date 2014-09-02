@@ -1,6 +1,4 @@
-#include <codecvt>
-#include <locale>
-#include <string>
+#include "sptlib-stdafx.hpp"
 
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> string_converter;
 

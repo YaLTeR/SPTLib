@@ -1,8 +1,5 @@
 #include "sptlib-stdafx.hpp"
 
-#include <codecvt>
-#include <locale>
-
 #include <detours.h>
 #include "detoursutils.hpp"
 #include "sptlib.hpp"

@@ -6,21 +6,14 @@
 
 #pragma comment (lib, "detours.lib")
 
-void AttachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
+void AttachDetours( const std::wstring &moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
 {
-	if ((argCount < 2) || ((argCount % 2) != 0)) // Must pass a set of functions and a set of replacement functions.
-		return;
-
-	va_list args, copy;
-	va_start( args, argCount );
-	va_copy( copy, args );
-
 	// Check if we need to detour something.
 	bool needToDetour = false;
-	for (unsigned int i = 0; i < argCount; i += 2)
+	for (auto funcPair : functions)
 	{
-		PVOID *pFunctionToDetour = va_arg( args, PVOID * );
-		PVOID functionToDetourWith = va_arg( args, PVOID );
+		PVOID *pFunctionToDetour = funcPair.first;
+		PVOID functionToDetourWith = funcPair.second;
 
 		if ((pFunctionToDetour && *pFunctionToDetour) && functionToDetourWith)
 		{
@@ -29,12 +22,10 @@ void AttachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 			break;
 		}
 	}
-	va_end( args );
 
 	// We don't have anything to detour.
 	if (!needToDetour)
 	{
-		va_end( copy );
 		EngineDevMsg("No %s functions to detour!\n", string_converter.to_bytes(moduleName).c_str());
 		return;
 	}
@@ -43,10 +34,10 @@ void AttachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 	DetourUpdateThread( GetCurrentThread() );
 
 	unsigned int detourCount = 0;
-	for (unsigned int i = 0; i < argCount; i += 2)
+	for (auto funcPair : functions)
 	{
-		PVOID *pFunctionToDetour = va_arg( copy, PVOID * );
-		PVOID functionToDetourWith = va_arg( copy, PVOID );
+		PVOID *pFunctionToDetour = funcPair.first;
+		PVOID functionToDetourWith = funcPair.second;
 
 		if ((pFunctionToDetour && *pFunctionToDetour) && functionToDetourWith)
 		{
@@ -54,7 +45,6 @@ void AttachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 			detourCount++;
 		}
 	}
-	va_end( copy );
 
 	LONG error = DetourTransactionCommit();
 	if (error == NO_ERROR)
@@ -67,21 +57,14 @@ void AttachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 	}
 }
 
-void DetachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
+void DetachDetours( const std::wstring &moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
 {
-	if ((argCount < 2) || ((argCount % 2) != 0)) // Must pass a set of functions and a set of replacement functions.
-		return;
-
-	va_list args, copy;
-	va_start( args, argCount );
-	va_copy( copy, args );
-
 	// Check if we need to undetour something.
 	bool needToUndetour = false;
-	for (unsigned int i = 0; i < argCount; i += 2)
+	for (auto funcPair : functions)
 	{
-		PVOID *pFunctionToUndetour = va_arg( args, PVOID * );
-		PVOID functionReplacement = va_arg( args, PVOID );
+		PVOID *pFunctionToUndetour = funcPair.first;
+		PVOID functionReplacement = funcPair.second;
 
 		if ((pFunctionToUndetour && *pFunctionToUndetour) && functionReplacement)
 		{
@@ -90,12 +73,10 @@ void DetachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 			break;
 		}
 	}
-	va_end(args);
 
 	// We don't have anything to undetour.
 	if (!needToUndetour)
 	{
-		va_end( copy );
 		EngineDevMsg("No %s functions to undetour!\n", string_converter.to_bytes(moduleName).c_str());
 		return;
 	}
@@ -104,10 +85,10 @@ void DetachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 	DetourUpdateThread( GetCurrentThread() );
 
 	unsigned int detourCount = 0;
-	for (unsigned int i = 0; i < argCount; i += 2)
+	for (auto funcPair : functions)
 	{
-		PVOID *pFunctionToUndetour = va_arg( copy, PVOID * );
-		PVOID functionReplacement = va_arg( copy, PVOID );
+		PVOID *pFunctionToUndetour = funcPair.first;
+		PVOID functionReplacement = funcPair.second;
 
 		if ((pFunctionToUndetour && *pFunctionToUndetour) && functionReplacement)
 		{
@@ -115,7 +96,6 @@ void DetachDetours( const std::wstring &moduleName, unsigned int argCount, ... )
 			detourCount++;
 		}
 	}
-	va_end( copy );
 
 	LONG error = DetourTransactionCommit();
 	if (error == NO_ERROR)

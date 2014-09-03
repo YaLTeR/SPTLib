@@ -51,12 +51,13 @@ void Hooks::Init()
 	ORIG_LoadLibraryExW = LoadLibraryExW;
 	ORIG_FreeLibrary = FreeLibrary;
 
-	AttachDetours(L"WinAPI", 10,
-		&ORIG_LoadLibraryA, HOOKED_LoadLibraryA,
-		&ORIG_LoadLibraryW, HOOKED_LoadLibraryW,
-		&ORIG_LoadLibraryExA, HOOKED_LoadLibraryExA,
-		&ORIG_LoadLibraryExW, HOOKED_LoadLibraryExW,
-		&ORIG_FreeLibrary, HOOKED_FreeLibrary);
+	AttachDetours(L"WinAPI", {
+		{ (PVOID *)(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
+		{ (PVOID *)(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
+		{ (PVOID *)(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
+		{ (PVOID *)(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
+		{ (PVOID *)(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
+	});
 }
 
 void Hooks::Free()
@@ -70,12 +71,13 @@ void Hooks::Free()
 		(*it)->Unhook();
 	}
 
-	DetachDetours(L"WinAPI", 10,
-		&ORIG_LoadLibraryA, HOOKED_LoadLibraryA,
-		&ORIG_LoadLibraryW, HOOKED_LoadLibraryW,
-		&ORIG_LoadLibraryExA, HOOKED_LoadLibraryExA,
-		&ORIG_LoadLibraryExW, HOOKED_LoadLibraryExW,
-		&ORIG_FreeLibrary, HOOKED_FreeLibrary);
+	DetachDetours(L"WinAPI", {
+		{ (PVOID *) (&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
+		{ (PVOID *) (&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
+		{ (PVOID *) (&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
+		{ (PVOID *) (&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
+		{ (PVOID *) (&ORIG_FreeLibrary), HOOKED_FreeLibrary }
+	});
 
 	Clear();
 }

@@ -8,10 +8,6 @@
 
 extern std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> string_converter;
 
-extern void ( *EngineConCmd )( const char *cmd );
-extern void ( *EngineGetViewAngles )( float viewangles[3] );
-extern void ( *EngineSetViewAngles )( const float viewangles[3] );
-
 extern void ( *_EngineMsg )( const char *format, ... );
 extern void ( *_EngineDevMsg )( const char *format, ... );
 extern void ( *_EngineWarning )( const char *format, ... );

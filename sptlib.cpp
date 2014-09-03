@@ -2,10 +2,6 @@
 
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> string_converter;
 
-void ( *EngineConCmd ) ( const char *cmd );
-void ( *EngineGetViewAngles ) ( float viewangles[3] );
-void ( *EngineSetViewAngles ) ( const float viewangles[3] );
-
 void ( *_EngineMsg )( const char *format, ... );
 void ( *_EngineDevMsg )( const char *format, ... );
 void ( *_EngineWarning )( const char *format, ... );

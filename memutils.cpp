@@ -80,6 +80,25 @@ namespace MemUtils
 		return true;
 	}
 
+	std::vector<HMODULE> GetLoadedModules()
+	{
+		std::vector<HMODULE> out;
+
+		HMODULE modules[1024];
+		DWORD sizeNeeded;
+
+		if (EnumProcessModules(GetCurrentProcess(), modules, sizeof(modules), &sizeNeeded))
+		{
+			sizeNeeded = std::min((unsigned long)1024, (sizeNeeded / sizeof(HMODULE)));
+			for (unsigned long i = 0; i < sizeNeeded; ++i)
+			{
+				out.push_back(modules[i]);
+			}
+		}
+
+		return out;
+	}
+
 	inline bool DataCompare(const byte* pData, const byte* pSig, const char* szPattern)
 	{
 		for (; *szPattern != 0; ++pData, ++pSig, ++szPattern)

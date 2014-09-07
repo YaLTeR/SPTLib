@@ -28,6 +28,8 @@ namespace MemUtils
 	bool GetModuleInfo(const std::wstring& szModuleName, HMODULE* moduleHandle, uintptr_t* moduleBase, size_t* moduleSize);
 	bool GetModuleInfo(HMODULE hModule, uintptr_t* moduleBase, size_t* moduleSize);
 
+	std::vector<HMODULE> GetLoadedModules();
+
 	inline bool DataCompare(const byte* pData, const byte* pSig, const char* szPattern);
 	uintptr_t FindPattern(uintptr_t start, size_t length, const byte* pSig, const char* szMask);
 

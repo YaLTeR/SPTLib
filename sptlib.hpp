@@ -23,3 +23,4 @@ extern void ( *_EngineDevWarning )( const char *format, ... );
 #define EngineDevWarning(...) _EngineDevWarning(SPT_MESSAGE_PREFIX __VA_ARGS__)
 
 std::wstring GetFileName( const std::wstring &fileNameWithPath );
+std::wstring GetFolderName( const std::wstring &fileNameWithPath );

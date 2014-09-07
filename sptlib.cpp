@@ -25,3 +25,28 @@ std::wstring GetFileName( const std::wstring &fileNameWithPath )
 
 	return fileNameWithPath;
 }
+
+std::wstring GetFolderName(const std::wstring &fileNameWithPath)
+{
+	size_t secondSlashPos = fileNameWithPath.rfind('\\');
+	if (secondSlashPos == std::wstring::npos)
+		secondSlashPos = fileNameWithPath.rfind('/');
+
+	if (secondSlashPos != std::wstring::npos)
+	{
+		size_t firstSlashPos = fileNameWithPath.rfind('\\', (secondSlashPos - 1));
+		if (firstSlashPos == std::wstring::npos)
+			firstSlashPos = fileNameWithPath.rfind('/', (secondSlashPos - 1));
+
+		if (firstSlashPos != std::wstring::npos)
+		{
+			return std::wstring(fileNameWithPath, (firstSlashPos + 1), (secondSlashPos - firstSlashPos - 1));
+		}
+		else
+		{
+			return std::wstring(fileNameWithPath, 0, secondSlashPos);
+		}
+	}
+
+	return fileNameWithPath;
+}

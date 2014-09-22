@@ -24,7 +24,7 @@ void IHookableDirFilter::TryHookAll()
 		WCHAR moduleName[MAX_PATH];
 		GetModuleFileNameW(module, moduleName, MAX_PATH * sizeof(WCHAR));
 
-		if (dirNames.find( GetFolderName(std::wstring(moduleName)) ) != dirNames.end())
+		if ( CanHook(std::wstring(moduleName)) )
 		{
 			uintptr_t start;
 			size_t size;

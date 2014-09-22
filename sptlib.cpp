@@ -7,6 +7,19 @@ void ( *_EngineDevMsg )( const char *format, ... );
 void ( *_EngineWarning )( const char *format, ... );
 void ( *_EngineDevWarning )( const char *format, ... );
 
+std::wstring::size_type GetRightmostSlash( const std::wstring &str, std::wstring::size_type pos = std::wstring::npos )
+{
+	std::wstring::size_type slashPos = str.rfind('/', pos),
+	                    backSlashPos = str.rfind('\\', pos);
+
+	if (slashPos == std::wstring::npos)
+		return backSlashPos;
+	else if (backSlashPos == std::wstring::npos)
+		return slashPos;
+	else
+		return std::max(slashPos, backSlashPos);
+}
+
 std::wstring GetFileName( const std::wstring &fileNameWithPath )
 {
 	size_t slashPos = fileNameWithPath.rfind('/');
@@ -28,15 +41,11 @@ std::wstring GetFileName( const std::wstring &fileNameWithPath )
 
 std::wstring GetFolderName(const std::wstring &fileNameWithPath)
 {
-	size_t secondSlashPos = fileNameWithPath.rfind('\\');
-	if (secondSlashPos == std::wstring::npos)
-		secondSlashPos = fileNameWithPath.rfind('/');
+	size_t secondSlashPos = GetRightmostSlash(fileNameWithPath);
 
 	if (secondSlashPos != std::wstring::npos)
 	{
-		size_t firstSlashPos = fileNameWithPath.rfind('\\', (secondSlashPos - 1));
-		if (firstSlashPos == std::wstring::npos)
-			firstSlashPos = fileNameWithPath.rfind('/', (secondSlashPos - 1));
+		size_t firstSlashPos = GetRightmostSlash(fileNameWithPath, (secondSlashPos - 1));
 
 		if (firstSlashPos != std::wstring::npos)
 		{

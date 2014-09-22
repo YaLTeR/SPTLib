@@ -22,5 +22,6 @@ extern void ( *_EngineDevWarning )( const char *format, ... );
 #define EngineWarning(...)    _EngineWarning(SPT_MESSAGE_PREFIX __VA_ARGS__)
 #define EngineDevWarning(...) _EngineDevWarning(SPT_MESSAGE_PREFIX __VA_ARGS__)
 
+std::wstring::size_type GetRightmostSlash( const std::wstring &str, std::wstring::size_type pos = std::wstring::npos );
 std::wstring GetFileName( const std::wstring &fileNameWithPath );
 std::wstring GetFolderName( const std::wstring &fileNameWithPath );

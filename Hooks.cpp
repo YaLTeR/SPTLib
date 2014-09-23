@@ -106,6 +106,7 @@ void Hooks::HookModule(std::wstring moduleName)
 			if ((module != NULL) || (MemUtils::GetModuleInfo(moduleName, &module, &start, &size)))
 			{
 				EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", string_converter.to_bytes(moduleName).c_str(), start, size);
+				(*it)->Unhook(); // Unhook first since it might've been hooked (with a different DLL).
 				(*it)->Hook(moduleName, module, start, size);
 			}
 			else

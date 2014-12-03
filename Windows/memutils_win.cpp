@@ -53,9 +53,7 @@ namespace MemUtils
 		{
 			sizeNeeded = std::min(1024ul, (sizeNeeded / sizeof(HMODULE)));
 			for (unsigned long i = 0; i < sizeNeeded; ++i)
-			{
 				out.push_back(modules[i]);
-			}
 		}
 
 		return out;
@@ -67,9 +65,7 @@ namespace MemUtils
 		VirtualProtect(addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
 		for (size_t i = 0; i < length; ++i)
-		{
 			*(reinterpret_cast<byte*>(addr) + i) = newBytes[i];
-		}
 
 		VirtualProtect(addr, length, dwOldProtect, NULL);
 	}

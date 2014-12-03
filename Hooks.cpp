@@ -1,7 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
 #include "hooks.hpp"
-#include "win32/detoursutils.hpp"
+#include "Windows/detoursutils.hpp"
 #include "memutils.hpp"
 #include "sptlib.hpp"
 

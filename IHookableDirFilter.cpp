@@ -4,12 +4,9 @@
 #include "memutils.hpp"
 #include "IHookableDirFilter.hpp"
 
-using std::uintptr_t;
-using std::size_t;
-
 bool IHookableDirFilter::CanHook(const std::wstring& moduleFullName)
 {
-	return (dirNames.find( GetFolderName(moduleFullName) ) != dirNames.end());
+	return (m_DirNames.find( GetFolderName(moduleFullName) ) != m_DirNames.end());
 }
 
 void IHookableDirFilter::Clear()
@@ -19,20 +16,18 @@ void IHookableDirFilter::Clear()
 
 void IHookableDirFilter::TryHookAll()
 {
-	for (auto module : MemUtils::GetLoadedModules())
+	for (auto handle : MemUtils::GetLoadedModules())
 	{
-		WCHAR moduleName[MAX_PATH];
-		GetModuleFileNameW(module, moduleName, MAX_PATH * sizeof(WCHAR));
-
-		if ( CanHook(std::wstring(moduleName)) )
+		std::wstring fullName = MemUtils::GetModulePath(handle);
+		if ( CanHook(fullName) )
 		{
-			uintptr_t start;
+			void* base;
 			size_t size;
 
-			if (MemUtils::GetModuleInfo(moduleName, &hModule, &start, &size))
+			if (MemUtils::GetModuleInfo(handle, &base, &size))
 			{
-				EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", string_converter.to_bytes(moduleName).c_str(), start, size);
-				Hook(moduleName, hModule, start, size);
+				EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", Convert( GetFileName(fullName) ).c_str(), base, size);
+				Hook(GetFileName(fullName), handle, base, size);
 				break;
 			}
 		}

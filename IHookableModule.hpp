@@ -1,26 +1,24 @@
-#include "sptlib-stdafx.hpp"
 #pragma once
 
-using std::uintptr_t;
-using std::size_t;
+#include "sptlib-stdafx.hpp"
 
 class IHookableModule
 {
 public:
 	virtual ~IHookableModule() {}
 	virtual bool CanHook(const std::wstring& moduleFullName) = 0;
-	virtual HMODULE GetModule();
-	virtual std::wstring GetHookedModuleName();
+	virtual void* GetHandle();
+	virtual std::wstring GetName();
 
-	virtual void Hook(const std::wstring& moduleName, HMODULE hModule, uintptr_t moduleStart, size_t moduleLength) = 0;
+	virtual void Hook(const std::wstring& moduleName, void* moduleHandle, void* moduleBase, size_t moduleLength) = 0;
 	virtual void Unhook() = 0;
 	virtual void Clear();
 
 	virtual void TryHookAll() = 0;
 
 protected:
-	HMODULE hModule;
-	uintptr_t moduleStart;
-	size_t moduleLength;
-	std::wstring moduleName;
+	void *m_Handle;
+	void *m_Base;
+	size_t m_Length;
+	std::wstring m_Name;
 };

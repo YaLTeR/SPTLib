@@ -1,21 +1,20 @@
 #include "sptlib-stdafx.hpp"
 
-#include "Hooks.hpp"
 #include "IHookableModule.hpp"
 
-HMODULE IHookableModule::GetModule()
+void* IHookableModule::GetHandle()
 {
-	return hModule;
+	return m_Handle;
 }
 
-std::wstring IHookableModule::GetHookedModuleName()
+std::wstring IHookableModule::GetName()
 {
-	return moduleName;
+	return m_Name;
 }
 
 void IHookableModule::Clear()
 {
-	hModule = nullptr;
-	moduleStart = 0;
-	moduleLength = 0;
+	m_Handle = nullptr;
+	m_Base = nullptr;
+	m_Length = 0;
 }

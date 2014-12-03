@@ -1,7 +1,5 @@
 #include "sptlib-stdafx.hpp"
 
-std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> string_converter;
-
 void ( *_EngineMsg )( const char *format, ... );
 void ( *_EngineDevMsg )( const char *format, ... );
 void ( *_EngineWarning )( const char *format, ... );
@@ -58,4 +56,39 @@ std::wstring GetFolderName(const std::wstring &fileNameWithPath)
 	}
 
 	return fileNameWithPath;
+}
+
+std::wstring Convert(const std::string& from)
+{
+	std::string previousLocale(std::setlocale(LC_ALL, NULL));
+	std::setlocale(LC_ALL, "");
+
+	std::wstring result(from.size(), L' ');
+	auto fromCStr = from.c_str();
+	auto state = std::mbstate_t();
+	auto length = std::mbsrtowcs(&result[0], &fromCStr, from.size(), &state);
+	if (length != static_cast<std::size_t>(-1))
+		result.resize(length);
+
+	std::setlocale(LC_ALL, previousLocale.c_str());
+	return result;
+}
+
+std::string Convert(const std::wstring& from)
+{
+	std::string previousLocale(std::setlocale(LC_ALL, NULL));
+	std::setlocale(LC_ALL, "");
+
+	auto fromCStr = from.c_str();
+	auto state = std::mbstate_t();
+	auto length = std::wcsrtombs(NULL, &fromCStr, from.size(), &state);
+	std::string result;
+	if (length != static_cast<std::size_t>(-1))
+	{
+		result.resize(length);
+		std::wcsrtombs(&result[0], &fromCStr, from.size(), &state);
+	}
+
+	std::setlocale(LC_ALL, previousLocale.c_str());
+	return result;
 }

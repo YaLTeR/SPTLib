@@ -1,11 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
-#include <unordered_map>
-
-#include <detours.h>
-
 #include "hooks.hpp"
-#include "detoursutils.hpp"
+#include "win32/detoursutils.hpp"
 #include "memutils.hpp"
 #include "sptlib.hpp"
 
@@ -67,7 +63,7 @@ void Hooks::Free()
 	// Unhook everything
 	for (auto it = modules.begin(); it != modules.end(); ++it)
 	{
-		EngineDevMsg("Unhooking %s...\n", string_converter.to_bytes((*it)->GetHookedModuleName()).c_str());
+		EngineDevMsg("Unhooking %s...\n", Convert((*it)->GetName()).c_str());
 		(*it)->Unhook();
 	}
 
@@ -95,31 +91,31 @@ void Hooks::Clear()
 
 void Hooks::HookModule(std::wstring moduleName)
 {
-	HMODULE module = NULL;
-	uintptr_t start = 0;
+	void *handle = nullptr;
+	void *base = nullptr;
 	size_t size = 0;
 
 	for (auto it = modules.cbegin(); it != modules.cend(); ++it)
 	{
 		if ((*it)->CanHook(moduleName))
 		{
-			if ((module != NULL) || (MemUtils::GetModuleInfo(moduleName, &module, &start, &size)))
+			if (handle || MemUtils::GetModuleInfo(moduleName, &handle, &base, &size))
 			{
-				EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", string_converter.to_bytes(moduleName).c_str(), start, size);
-				(*it)->Unhook(); // Unhook first since it might've been hooked (with a different DLL).
-				(*it)->Hook(moduleName, module, start, size);
+				EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", Convert(moduleName).c_str(), base, size);
+				(*it)->Unhook(); // Unhook first since it might have been hooked (with a different DLL).
+				(*it)->Hook(moduleName, handle, base, size);
 			}
 			else
 			{
-				EngineWarning("Unable to obtain the %s module info!\n", string_converter.to_bytes(moduleName).c_str());
+				EngineWarning("Unable to obtain the %s module info!\n", Convert(moduleName).c_str());
 				return;
 			}
 		}
 	}
 
-	if (module == NULL)
+	if (!handle)
 	{
-		EngineDevMsg("Tried to hook an unlisted module: %s\n", string_converter.to_bytes(moduleName).c_str());
+		EngineDevMsg("Tried to hook an unlisted module: %s\n", Convert(moduleName).c_str());
 	}
 }
 
@@ -128,9 +124,9 @@ void Hooks::UnhookModule(std::wstring moduleName)
 	bool unhookedSomething = false;
 	for (auto it = modules.cbegin(); it != modules.cend(); ++it)
 	{
-		if ((*it)->GetHookedModuleName().compare(moduleName) == 0)
+		if ((*it)->GetName().compare(moduleName) == 0)
 		{
-			EngineDevMsg("Unhooking %s...\n", string_converter.to_bytes(moduleName).c_str());
+			EngineDevMsg("Unhooking %s...\n", Convert(moduleName).c_str());
 			(*it)->Unhook();
 			unhookedSomething = true;
 		}
@@ -138,7 +134,7 @@ void Hooks::UnhookModule(std::wstring moduleName)
 	
 	if (!unhookedSomething)
 	{
-		EngineDevMsg("Tried to unhook an unlisted module: %s\n", string_converter.to_bytes(moduleName).c_str());
+		EngineDevMsg("Tried to unhook an unlisted module: %s\n", Convert(moduleName).c_str());
 	}
 }
 
@@ -161,7 +157,7 @@ HMODULE WINAPI Hooks::HOOKED_LoadLibraryA_Func(LPCSTR lpFileName)
 
 	if (rv != NULL)
 	{
-		HookModule( string_converter.from_bytes(lpFileName) );
+		HookModule( Convert(lpFileName) );
 	}
 
 	return rv;
@@ -171,7 +167,7 @@ HMODULE WINAPI Hooks::HOOKED_LoadLibraryW_Func(LPCWSTR lpFileName)
 {
 	HMODULE rv = ORIG_LoadLibraryW(lpFileName);
 
-	EngineDevMsg("Engine call: LoadLibraryW( \"%s\" ) => %p\n", string_converter.to_bytes(lpFileName).c_str(), rv);
+	EngineDevMsg("Engine call: LoadLibraryW( \"%s\" ) => %p\n", Convert(lpFileName).c_str(), rv);
 
 	if (rv != NULL)
 	{
@@ -189,7 +185,7 @@ HMODULE WINAPI Hooks::HOOKED_LoadLibraryExA_Func(LPCSTR lpFileName, HANDLE hFile
 
 	if (rv != NULL)
 	{
-		HookModule( string_converter.from_bytes(lpFileName) );
+		HookModule( Convert(lpFileName) );
 	}
 
 	return rv;
@@ -199,7 +195,7 @@ HMODULE WINAPI Hooks::HOOKED_LoadLibraryExW_Func(LPCWSTR lpFileName, HANDLE hFil
 {
 	HMODULE rv = ORIG_LoadLibraryExW(lpFileName, hFile, dwFlags);
 
-	EngineDevMsg("Engine call: LoadLibraryExW( \"%s\" ) => %p\n", string_converter.to_bytes(lpFileName).c_str(), rv);
+	EngineDevMsg("Engine call: LoadLibraryExW( \"%s\" ) => %p\n", Convert(lpFileName).c_str(), rv);
 
 	if (rv != NULL)
 	{
@@ -213,7 +209,7 @@ BOOL WINAPI Hooks::HOOKED_FreeLibrary_Func(HMODULE hModule)
 {
 	for (auto it = modules.cbegin(); it != modules.cend(); ++it)
 	{
-		if ((*it)->GetModule() == hModule)
+		if ((*it)->GetHandle() == hModule)
 			(*it)->Unhook();
 	}
 

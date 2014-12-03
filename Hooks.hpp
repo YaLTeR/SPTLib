@@ -1,8 +1,6 @@
-#include "sptlib-stdafx.hpp"
 #pragma once
 
-#include <vector>
-
+#include "sptlib-stdafx.hpp"
 #include "IHookableModule.hpp"
 
 typedef HMODULE(WINAPI *_LoadLibraryA) (LPCSTR lpLFileName);

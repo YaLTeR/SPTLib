@@ -1,186 +1,68 @@
 #include "sptlib-stdafx.hpp"
 
-#include <limits>
-
 #include <Psapi.h>
 #include "memutils.hpp"
 
-#pragma comment( lib, "psapi.lib" )
-
-using std::uintptr_t;
-using std::size_t;
-
 namespace MemUtils
 {
-	bool GetModuleInfo(const std::wstring& szModuleName, uintptr_t* moduleBase, size_t* moduleSize)
+	inline bool DataCompare(const byte* data, const byte* pattern, const char* mask)
 	{
-		HANDLE hProcess = GetCurrentProcess();
-		HMODULE hModule = GetModuleHandleW(szModuleName.c_str());
-
-		if (!hProcess || !hModule)
-		{
-			return false;
-		}
-
-		MODULEINFO moduleInfo;
-		GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo));
-
-		if (moduleBase)
-			*moduleBase = (uintptr_t)moduleInfo.lpBaseOfDll;
-
-		if (moduleSize)
-			*moduleSize = (size_t)moduleInfo.SizeOfImage;
-
-		return true;
-	}
-
-	bool GetModuleInfo(const std::wstring& szModuleName, HMODULE* moduleHandle, uintptr_t* moduleBase, size_t* moduleSize)
-	{
-		HANDLE hProcess = GetCurrentProcess();
-		HMODULE hModule = GetModuleHandleW(szModuleName.c_str());
-
-		if (!hProcess || !hModule)
-		{
-			return false;
-		}
-
-		MODULEINFO moduleInfo;
-		GetModuleInformation( hProcess, hModule, &moduleInfo, sizeof(moduleInfo) );
-
-		if (moduleHandle)
-			*moduleHandle = hModule;
-
-		if (moduleBase)
-			*moduleBase = (uintptr_t)moduleInfo.lpBaseOfDll;
-
-		if (moduleSize)
-			*moduleSize = (size_t)moduleInfo.SizeOfImage;
-
-		return true;
-	}
-
-	bool GetModuleInfo(HMODULE hModule, uintptr_t* moduleBase, size_t* moduleSize)
-	{
-		HANDLE hProcess = GetCurrentProcess();
-
-		if (!hProcess || !hModule)
-		{
-			return false;
-		}
-
-		MODULEINFO moduleInfo;
-		GetModuleInformation(hProcess, hModule, &moduleInfo, sizeof(moduleInfo));
-
-		if (moduleBase)
-			*moduleBase = (uintptr_t)moduleInfo.lpBaseOfDll;
-
-		if (moduleSize)
-			*moduleSize = (size_t)moduleInfo.SizeOfImage;
-
-		return true;
-	}
-
-	std::vector<HMODULE> GetLoadedModules()
-	{
-		std::vector<HMODULE> out;
-
-		HMODULE modules[1024];
-		DWORD sizeNeeded;
-
-		if (EnumProcessModules(GetCurrentProcess(), modules, sizeof(modules), &sizeNeeded))
-		{
-			sizeNeeded = std::min((unsigned long)1024, (sizeNeeded / sizeof(HMODULE)));
-			for (unsigned long i = 0; i < sizeNeeded; ++i)
-			{
-				out.push_back(modules[i]);
-			}
-		}
-
-		return out;
-	}
-
-	inline bool DataCompare(const byte* pData, const byte* pSig, const char* szPattern)
-	{
-		for (; *szPattern != 0; ++pData, ++pSig, ++szPattern)
-		{
-			if (*szPattern == 'x' && *pData != *pSig)
-			{
+		for (; *mask != 0; ++data, ++pattern, ++mask)
+			if (*mask == 'x' && *data != *pattern)
 				return false;
-			}
-		}
 
-		return (*szPattern == 0);
+		return (*mask == 0);
 	}
 
-	uintptr_t FindPattern(uintptr_t start, size_t length, const byte* pSig, const char* szMask)
+	void* FindPattern(const void* start, size_t length, const byte* pattern, const char* mask)
 	{
-		for (uintptr_t i = NULL; i < length; i++)
+		auto maskLength = strlen(mask);
+		for (size_t i = 0; i <= length - maskLength; ++i)
 		{
-			if (DataCompare((byte *)(start + i), pSig, szMask))
-			{
-				return (start + i);
-			}
+			auto addr = reinterpret_cast<const byte*>(start) + i;
+			if (DataCompare(addr, pattern, mask))
+				return const_cast<void*>(reinterpret_cast<const void*>(addr));
 		}
 
-		return NULL;
+		return nullptr;
 	}
 
-	ptnvec_size FindUniqueSequence(uintptr_t start, size_t length, const ptnvec& patterns, uintptr_t* pdwAddress)
+	ptnvec_size FindUniqueSequence(const void* start, size_t length, const ptnvec& patterns, void** pAddress)
 	{
 		for (ptnvec_size i = 0; i < patterns.size(); i++)
 		{
-			uintptr_t address = FindPattern(start, length, patterns[i].pattern.data(), patterns[i].mask.c_str());
+			auto address = FindPattern(start, length, patterns[i].pattern.data(), patterns[i].mask.c_str());
 			if (address)
 			{
-				size_t newSize = length - (address - start + 1);
-				if ( NULL == FindPattern(address + 1, newSize, patterns[i].pattern.data(), patterns[i].mask.c_str()) )
+				size_t newSize = length - (reinterpret_cast<uintptr_t>(address) - reinterpret_cast<uintptr_t>(start) + 1);
+				if ( !FindPattern(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(address) + 1), newSize, patterns[i].pattern.data(), patterns[i].mask.c_str()) )
 				{
-					if (pdwAddress)
-					{
-						*pdwAddress = address;
-					}
+					if (pAddress)
+						*pAddress = address;
 
 					return i; // Return the number of the pattern.
 				}
 				else
 				{
-					if (pdwAddress)
-					{
-						*pdwAddress = NULL;
-					}
+					if (pAddress)
+						*pAddress = nullptr;
 
 					return INVALID_SEQUENCE_INDEX; // Bogus sequence.
 				}
 			}
 		}
 
-		if (pdwAddress)
-		{
-			*pdwAddress = NULL;
-		}
+		if (pAddress)
+			*pAddress = nullptr;
 
 		return INVALID_SEQUENCE_INDEX; // Didn't find anything.
 	}
 
-	void ReplaceBytes(const uintptr_t addr, const size_t length, const byte* pNewBytes)
+	void* HookVTable(void** vtable, size_t index, const void* function)
 	{
-		DWORD dwOldProtect;
+		auto oldFunction = vtable[index];
 
-		VirtualProtect((void *)addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-
-		for (uintptr_t i = NULL; i < length; i++)
-		{
-			*(byte *)(addr + i) = pNewBytes[i];
-		}
-
-		VirtualProtect((void *)addr, length, dwOldProtect, NULL);
-	}
-
-	uintptr_t HookVTable(const uintptr_t* vtable, const size_t index, const uintptr_t function)
-	{
-		uintptr_t oldFunction = vtable[index];
-
-		ReplaceBytes( (uintptr_t)( &(vtable[index]) ), sizeof(uintptr_t), (byte*)&function );
+		ReplaceBytes(&(vtable[index]), sizeof(void*), reinterpret_cast<byte*>(&function));
 
 		return oldFunction;
 	}

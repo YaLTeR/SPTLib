@@ -4,12 +4,9 @@
 #include "memutils.hpp"
 #include "IHookableNameFilter.hpp"
 
-using std::uintptr_t;
-using std::size_t;
-
 bool IHookableNameFilter::CanHook(const std::wstring& moduleFullName)
 {
-	return (moduleNames.find( GetFileName(moduleFullName) ) != moduleNames.end());
+	return (m_Names.find( GetFileName(moduleFullName) ) != m_Names.end());
 }
 
 void IHookableNameFilter::Clear()
@@ -19,15 +16,15 @@ void IHookableNameFilter::Clear()
 
 void IHookableNameFilter::TryHookAll()
 {
-	for (auto name : moduleNames)
+	for (auto name : m_Names)
 	{
-		HMODULE hModule;
-		uintptr_t start;
+		void* handle;
+		void* start;
 		size_t size;
-		if (MemUtils::GetModuleInfo(name, &hModule, &start, &size))
+		if (MemUtils::GetModuleInfo(name, &handle, &start, &size))
 		{
-			EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", string_converter.to_bytes(name).c_str(), start, size);
-			Hook(name, hModule, start, size);
+			EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", Convert(name).c_str(), start, size);
+			Hook(name, handle, start, size);
 			break;
 		}
 	}

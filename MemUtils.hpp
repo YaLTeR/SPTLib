@@ -32,6 +32,6 @@ namespace MemUtils
 	bool GetModuleInfo(const std::wstring& moduleName, void** moduleHandle, void** moduleBase, size_t* moduleSize);
 	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize);
 	std::wstring GetModulePath(void* moduleHandle);
-
 	std::vector<void*> GetLoadedModules();
+	void* GetFunctionAddress(void* moduleHandle, const char* functionName);
 }

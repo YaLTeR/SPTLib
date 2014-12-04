@@ -37,7 +37,7 @@ namespace MemUtils
 			return false;
 
 		MODULEINFO Info;
-		GetModuleInformation(GetCurrentProcess(), static_cast<HMODULE>(moduleHandle), &Info, sizeof(Info));
+		GetModuleInformation(GetCurrentProcess(), reinterpret_cast<HMODULE>(moduleHandle), &Info, sizeof(Info));
 
 		if (moduleBase)
 			*moduleBase = Info.lpBaseOfDll;
@@ -81,5 +81,10 @@ namespace MemUtils
 		}
 
 		return out;
+	}
+
+	void* GetFunctionAddress(void* moduleHandle, const char* functionName)
+	{
+		return GetProcAddress(reinterpret_cast<HMODULE>(moduleHandle), functionName);
 	}
 }

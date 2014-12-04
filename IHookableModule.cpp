@@ -17,4 +17,5 @@ void IHookableModule::Clear()
 	m_Handle = nullptr;
 	m_Base = nullptr;
 	m_Length = 0;
+	m_Intercepted = false;
 }

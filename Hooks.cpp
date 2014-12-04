@@ -17,7 +17,7 @@ namespace Hooks
 		// Try hooking each module in case it is already loaded
 		for (auto it = modules.cbegin(); it != modules.cend(); ++it)
 		{
-			(*it)->TryHookAll();
+			(*it)->TryHookAll(needToIntercept);
 		}
 
 		InitInterception(needToIntercept);
@@ -59,7 +59,7 @@ namespace Hooks
 				{
 					EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", Convert(name).c_str(), base, size);
 					(*it)->Unhook(); // Unhook first since it might have been hooked (with a different DLL).
-					(*it)->Hook(name, handle, base, size);
+					(*it)->Hook(name, handle, base, size, intercepted);
 				}
 				else
 				{

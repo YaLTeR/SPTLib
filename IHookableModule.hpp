@@ -10,15 +10,16 @@ public:
 	virtual void* GetHandle();
 	virtual std::wstring GetName();
 
-	virtual void Hook(const std::wstring& moduleName, void* moduleHandle, void* moduleBase, size_t moduleLength) = 0;
+	virtual void Hook(const std::wstring& moduleName, void* moduleHandle, void* moduleBase, size_t moduleLength, bool needToIntercept) = 0;
 	virtual void Unhook() = 0;
 	virtual void Clear();
 
-	virtual void TryHookAll() = 0;
+	virtual void TryHookAll(bool needToIntercept) = 0;
 
 protected:
 	void *m_Handle;
 	void *m_Base;
 	size_t m_Length;
 	std::wstring m_Name;
+	bool m_Intercepted;
 };

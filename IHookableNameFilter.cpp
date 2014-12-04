@@ -9,12 +9,7 @@ bool IHookableNameFilter::CanHook(const std::wstring& moduleFullName)
 	return (m_Names.find( GetFileName(moduleFullName) ) != m_Names.end());
 }
 
-void IHookableNameFilter::Clear()
-{
-	IHookableModule::Clear();
-}
-
-void IHookableNameFilter::TryHookAll()
+void IHookableNameFilter::TryHookAll(bool needToIntercept)
 {
 	for (auto name : m_Names)
 	{
@@ -24,7 +19,7 @@ void IHookableNameFilter::TryHookAll()
 		if (MemUtils::GetModuleInfo(name, &handle, &start, &size))
 		{
 			EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", Convert(name).c_str(), start, size);
-			Hook(name, handle, start, size);
+			Hook(name, handle, start, size, needToIntercept);
 			break;
 		}
 	}

@@ -9,12 +9,7 @@ bool IHookableDirFilter::CanHook(const std::wstring& moduleFullName)
 	return (m_DirNames.find( GetFolderName(moduleFullName) ) != m_DirNames.end());
 }
 
-void IHookableDirFilter::Clear()
-{
-	IHookableModule::Clear();
-}
-
-void IHookableDirFilter::TryHookAll()
+void IHookableDirFilter::TryHookAll(bool needToIntercept)
 {
 	for (auto handle : MemUtils::GetLoadedModules())
 	{
@@ -27,7 +22,7 @@ void IHookableDirFilter::TryHookAll()
 			if (MemUtils::GetModuleInfo(handle, &base, &size))
 			{
 				EngineDevMsg("Hooking %s (start: %p; size: %x)...\n", Convert( GetFileName(fullName) ).c_str(), base, size);
-				Hook(GetFileName(fullName), handle, base, size);
+				Hook(GetFileName(fullName), handle, base, size, needToIntercept);
 				break;
 			}
 		}

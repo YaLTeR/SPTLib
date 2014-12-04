@@ -2,11 +2,35 @@
 
 #include <Psapi.h>
 #include "../MemUtils.hpp"
+#include "DetoursUtils.hpp"
 
 #pragma comment( lib, "psapi.lib" )
 
 namespace MemUtils
 {
+	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
+	{
+		DWORD dwOldProtect;
+		auto result = VirtualProtect(addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+
+		for (size_t i = 0; i < length; ++i)
+			*(reinterpret_cast<byte*>(addr)+i) = newBytes[i];
+
+		// The first call might have failed, but the target might have still been accessible.
+		if (result)
+			VirtualProtect(addr, length, dwOldProtect, &dwOldProtect);
+	}
+
+	void Intercept(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions)
+	{
+		DetoursUtils::AttachDetours(moduleName, functions);
+	}
+
+	void RemoveInterception(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions)
+	{
+		DetoursUtils::DetachDetours(moduleName, functions);
+	}
+
 	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize)
 	{
 		if (!moduleHandle)
@@ -57,18 +81,5 @@ namespace MemUtils
 		}
 
 		return out;
-	}
-
-	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
-	{
-		DWORD dwOldProtect;
-		auto result = VirtualProtect(addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-
-		for (size_t i = 0; i < length; ++i)
-			*(reinterpret_cast<byte*>(addr) + i) = newBytes[i];
-
-		// The first call might have failed, but the target might have still been accessible.
-		if (result)
-			VirtualProtect(addr, length, dwOldProtect, &dwOldProtect);
 	}
 }

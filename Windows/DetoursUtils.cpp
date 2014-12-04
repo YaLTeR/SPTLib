@@ -6,7 +6,7 @@
 
 #pragma comment (lib, "detours.lib")
 
-void DetoursUtils::AttachDetours( const std::wstring &moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
+void DetoursUtils::AttachDetours( const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
 {
 	unsigned int detourCount = 0;
 	for (auto funcPair : functions)
@@ -46,7 +46,7 @@ void DetoursUtils::AttachDetours( const std::wstring &moduleName, const std::vec
 	}
 }
 
-void DetoursUtils::DetachDetours( const std::wstring &moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
+void DetoursUtils::DetachDetours( const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
 {
 	unsigned int detourCount = 0;
 	for (auto funcPair : functions)

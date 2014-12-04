@@ -1,7 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
 #include "../Hooks.hpp"
-#include "DetoursUtils.hpp"
+#include "../MemUtils.hpp"
 #include "../sptlib.hpp"
 
 namespace Hooks
@@ -98,7 +98,7 @@ namespace Hooks
 		ORIG_FreeLibrary = FreeLibrary;
 
 		if (needToIntercept)
-			DetoursUtils::AttachDetours(L"WinAPI", {
+			MemUtils::Intercept(L"WinAPI", {
 				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
 				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
 				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
@@ -109,7 +109,7 @@ namespace Hooks
 
 	void ClearInterception(bool needToIntercept)
 	{
-		DetoursUtils::DetachDetours(L"WinAPI", {
+		MemUtils::RemoveInterception(L"WinAPI", {
 			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
 			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
 			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },

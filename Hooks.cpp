@@ -1,6 +1,6 @@
 #include "sptlib-stdafx.hpp"
 
-#include "hooks.hpp"
+#include "Hooks.hpp"
 #include "MemUtils.hpp"
 #include "sptlib.hpp"
 

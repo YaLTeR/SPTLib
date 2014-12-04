@@ -7,10 +7,11 @@
 #include <Windows.h>
 #endif
 
+#include <clocale>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-#include <clocale>
+#include <cstring>
 
 #include <future>
 #include <limits>

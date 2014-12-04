@@ -1,7 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
 #include <detours.h>
-#include "detoursutils.hpp"
+#include "DetoursUtils.hpp"
 #include "sptlib.hpp"
 
 #pragma comment (lib, "detours.lib")

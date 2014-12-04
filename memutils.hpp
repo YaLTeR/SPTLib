@@ -19,7 +19,7 @@ namespace MemUtils
 	const ptnvec_size INVALID_SEQUENCE_INDEX = std::numeric_limits<ptnvec_size>::max();
 
 	bool GetModuleInfo(const std::wstring& moduleName, void** moduleHandle, void** moduleBase, size_t* moduleSize);
-	bool GetModuleInfo(const void* moduleHandle, void** moduleBase, size_t* moduleSize);
+	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize);
 	std::wstring GetModulePath(void* moduleHandle);
 
 	std::vector<void*> GetLoadedModules();

@@ -1,7 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
 #include "sptlib.hpp"
-#include "memutils.hpp"
+#include "MemUtils.hpp"
 #include "IHookableNameFilter.hpp"
 
 bool IHookableNameFilter::CanHook(const std::wstring& moduleFullName)

@@ -1,7 +1,6 @@
 #include "sptlib-stdafx.hpp"
 
-#include <Psapi.h>
-#include "memutils.hpp"
+#include "MemUtils.hpp"
 
 namespace MemUtils
 {

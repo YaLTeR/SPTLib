@@ -1,19 +1,19 @@
 #include "sptlib-stdafx.hpp"
 
 #include <Psapi.h>
-#include "../memutils.hpp"
+#include "../MemUtils.hpp"
 
 #pragma comment( lib, "psapi.lib" )
 
 namespace MemUtils
 {
-	bool GetModuleInfo(const void* moduleHandle, void** moduleBase, size_t* moduleSize)
+	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize)
 	{
 		if (!moduleHandle)
 			return false;
 
 		MODULEINFO Info;
-		GetModuleInformation(GetCurrentProcess(), (HMODULE)moduleHandle, &Info, sizeof(Info));
+		GetModuleInformation(GetCurrentProcess(), static_cast<HMODULE>(moduleHandle), &Info, sizeof(Info));
 
 		if (moduleBase)
 			*moduleBase = Info.lpBaseOfDll;
@@ -38,7 +38,7 @@ namespace MemUtils
 	std::wstring GetModulePath(void* moduleHandle)
 	{
 		WCHAR path[MAX_PATH];
-		GetModuleFileNameW(reinterpret_cast<HMODULE>(moduleHandle), path, MAX_PATH * sizeof(WCHAR));
+		GetModuleFileNameW(reinterpret_cast<HMODULE>(moduleHandle), path, MAX_PATH);
 		return std::wstring(path);
 	}
 	
@@ -62,11 +62,13 @@ namespace MemUtils
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
 	{
 		DWORD dwOldProtect;
-		VirtualProtect(addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+		auto result = VirtualProtect(addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
 		for (size_t i = 0; i < length; ++i)
 			*(reinterpret_cast<byte*>(addr) + i) = newBytes[i];
 
-		VirtualProtect(addr, length, dwOldProtect, NULL);
+		// The first call might have failed, but the target might have still been accessible.
+		if (result)
+			VirtualProtect(addr, length, dwOldProtect, &dwOldProtect);
 	}
 }

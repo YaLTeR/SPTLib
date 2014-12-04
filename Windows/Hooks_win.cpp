@@ -99,22 +99,22 @@ namespace Hooks
 
 		if (needToIntercept)
 			MemUtils::Intercept(L"WinAPI", {
-				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
-				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
-				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
-				{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
-				{ reinterpret_cast<PVOID *>(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
+				{ reinterpret_cast<void**>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
+				{ reinterpret_cast<void**>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
+				{ reinterpret_cast<void**>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
+				{ reinterpret_cast<void**>(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
+				{ reinterpret_cast<void**>(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
 			});
 	}
 
 	void ClearInterception(bool needToIntercept)
 	{
 		MemUtils::RemoveInterception(L"WinAPI", {
-			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
-			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
-			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
-			{ reinterpret_cast<PVOID *>(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
-			{ reinterpret_cast<PVOID *>(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
+			{ reinterpret_cast<void**>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
+			{ reinterpret_cast<void**>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
+			{ reinterpret_cast<void**>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
+			{ reinterpret_cast<void**>(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
+			{ reinterpret_cast<void**>(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
 		});
 		
 		ORIG_LoadLibraryA = nullptr;

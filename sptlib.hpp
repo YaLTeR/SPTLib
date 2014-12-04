@@ -2,7 +2,7 @@
 
 #include "sptlib-stdafx.hpp"
 
-#define SPTLIB_VERSION "1.2-beta"
+#define SPTLIB_VERSION "1.2"
 
 extern void ( *_EngineMsg )( const char *format, ... );
 extern void ( *_EngineDevMsg )( const char *format, ... );

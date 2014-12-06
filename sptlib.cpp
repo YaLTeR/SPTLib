@@ -58,6 +58,21 @@ std::wstring GetFolderName(const std::wstring &fileNameWithPath)
 	return fileNameWithPath;
 }
 
+std::wstring NormalizePath(const std::wstring& path)
+{
+	std::wstring ret(path);
+	for (auto slash = GetRightmostSlash(ret); slash != std::wstring::npos && slash > 1; slash = GetRightmostSlash(ret, slash - 1))
+	{
+		if (ret[slash - 1] == '.' && GetRightmostSlash(ret, slash - 2) == (slash - 2))
+		{
+			ret.erase(slash - 2, 2);
+			slash -= 2;
+		}
+	}
+	
+	return ret;
+}
+
 std::wstring Convert(const std::string& from)
 {
 	std::string previousLocale(std::setlocale(LC_ALL, NULL));

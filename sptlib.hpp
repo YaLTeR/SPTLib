@@ -21,5 +21,6 @@ extern void ( *_EngineDevWarning )( const char *format, ... );
 std::wstring::size_type GetRightmostSlash( const std::wstring& str, std::wstring::size_type pos = std::wstring::npos );
 std::wstring GetFileName( const std::wstring& fileNameWithPath );
 std::wstring GetFolderName( const std::wstring& fileNameWithPath );
+std::wstring NormalizePath(const std::wstring& path);
 std::wstring Convert(const std::string& from);
 std::string Convert(const std::wstring& from);

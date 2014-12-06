@@ -14,13 +14,15 @@ namespace Hooks
 		_EngineDevMsg("SPTLib version " SPTLIB_VERSION ".\n");
 		EngineDevMsg("Modules contain %d entries.\n", modules.size());
 
+		InitInterception(needToIntercept);
+
 		// Try hooking each module in case it is already loaded
 		for (auto it = modules.cbegin(); it != modules.cend(); ++it)
 		{
-			(*it)->TryHookAll(needToIntercept);
+			auto p = *it;
+			p->TryHookAll(needToIntercept);
 		}
 
-		InitInterception(needToIntercept);
 		intercepted = needToIntercept;
 	}
 

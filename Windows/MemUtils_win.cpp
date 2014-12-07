@@ -83,7 +83,7 @@ namespace MemUtils
 		return out;
 	}
 
-	void* GetFunctionAddress(void* moduleHandle, const char* functionName)
+	void* GetSymbolAddress(void* moduleHandle, const char* functionName)
 	{
 		return GetProcAddress(reinterpret_cast<HMODULE>(moduleHandle), functionName);
 	}

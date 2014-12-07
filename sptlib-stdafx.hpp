@@ -15,6 +15,7 @@
 
 #include <future>
 #include <limits>
+#include <mutex>
 #include <set>
 #include <string>
 #include <unordered_map>

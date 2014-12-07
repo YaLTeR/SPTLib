@@ -28,10 +28,13 @@ namespace MemUtils
 
 	void Intercept(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions);
 	void RemoveInterception(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions);
+	void AddSymbolLookupHook(void* moduleHandle, void* original, void* target);
+	void RemoveSymbolLookupHook(void* moduleHandle, void* original);
+	void* GetSymbolLookupResult(void* handle, void* original);
 
 	bool GetModuleInfo(const std::wstring& moduleName, void** moduleHandle, void** moduleBase, size_t* moduleSize);
 	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize);
 	std::wstring GetModulePath(void* moduleHandle);
 	std::vector<void*> GetLoadedModules();
-	void* GetFunctionAddress(void* moduleHandle, const char* functionName);
+	void* GetSymbolAddress(void* moduleHandle, const char* functionName);
 }

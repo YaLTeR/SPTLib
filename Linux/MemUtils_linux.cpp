@@ -4,6 +4,7 @@
 #include <link.h>
 #include <sys/mman.h>
 #include <linux/limits.h>
+#include <unistd.h>
 #include "../sptlib.hpp"
 #include "../MemUtils.hpp"
 
@@ -17,7 +18,11 @@ namespace MemUtils
 {
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
 	{
-		mprotect(addr, length, PROT_READ | PROT_WRITE | PROT_EXEC);
+		static auto pagesize = sysconf(_SC_PAGESIZE);
+		size_t protectLength = length + (reinterpret_cast<uintptr_t>(addr) % pagesize);
+		void *protectAddr = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(addr) - (reinterpret_cast<uintptr_t>(addr) % pagesize));
+		if (mprotect(protectAddr, protectLength, PROT_READ | PROT_WRITE | PROT_EXEC) == -1)
+			EngineDevWarning("Failed to protect memory: %s\n", strerror(errno));
 
 		for (size_t i = 0; i < length; ++i)
 			*(reinterpret_cast<byte*>(addr)+i) = newBytes[i];
@@ -70,7 +75,7 @@ namespace MemUtils
 			void *start, *end;
 			char filename[PATH_MAX + 1];
 			fgets(buf, sizeof(buf), mapsFile);
-			if (sscanf(buf, "%p-%p %*s %*s %*s %*s %s", &start, &end, filename, filename, filename, filename, filename) == 3)
+			if (sscanf(buf, "%p-%p %*s %*s %*s %*s %s", &start, &end, filename) == 3)
 			{
 				if (!strcmp(filename, path.c_str()))
 				{

@@ -16,11 +16,11 @@ _dlsym ORIG_dlsym;
 
 namespace Hooks
 {
-	static char* bxtDebug = getenv("BXT_DEBUG");
+	static char* sptlibDebug = getenv("SPTLIB_DEBUG");
 
 	static bool shouldPrintDLInfo()
 	{
-		return bxtDebug && (bxtDebug[0] == '1');
+		return sptlibDebug && (sptlibDebug[0] == '1');
 	}
 
 	static void* get_dlsym_addr()

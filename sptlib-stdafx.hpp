@@ -5,6 +5,10 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#include <Psapi.h>
+#include <detours.h>
+#pragma comment( lib, "psapi.lib" )
+#pragma comment (lib, "detours.lib")
 #endif
 
 #include <clocale>
@@ -20,6 +24,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <utility>
 
 using std::uintptr_t;
 using std::size_t;

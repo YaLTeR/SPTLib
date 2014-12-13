@@ -1,8 +1,8 @@
 #include "sptlib-stdafx.hpp"
 
+#include "../sptlib.hpp"
 #include "../Hooks.hpp"
 #include "../MemUtils.hpp"
-#include "../sptlib.hpp"
 
 namespace Hooks
 {

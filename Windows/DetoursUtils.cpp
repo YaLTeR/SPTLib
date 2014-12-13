@@ -1,10 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
-#include <detours.h>
+#include "../sptlib.hpp"
 #include "DetoursUtils.hpp"
-#include "sptlib.hpp"
-
-#pragma comment (lib, "detours.lib")
 
 void DetoursUtils::AttachDetours( const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
 {

@@ -1,10 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
-#include <Psapi.h>
 #include "../MemUtils.hpp"
 #include "DetoursUtils.hpp"
-
-#pragma comment( lib, "psapi.lib" )
 
 namespace MemUtils
 {

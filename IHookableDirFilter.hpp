@@ -1,6 +1,8 @@
 #pragma once
 
-#include "sptlib-stdafx.hpp"
+#include <set>
+#include <string>
+
 #include "IHookableModule.hpp"
 
 class IHookableDirFilter : public IHookableModule

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "sptlib-stdafx.hpp"
+// This is used only by SPTLib itself and we know that every SPTLib .cpp file contains
+// a sptlib-stdafx.hpp include in the very beginning, which has all the required headers.
 
 namespace DetoursUtils
 {

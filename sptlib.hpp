@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sptlib-stdafx.hpp"
+#include <string>
 
 #define SPTLIB_VERSION "1.2"
 

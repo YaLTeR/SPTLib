@@ -1,6 +1,8 @@
 #pragma once
 
-#include "sptlib-stdafx.hpp"
+#include <string>
+#include <vector>
+
 #include "IHookableModule.hpp"
 
 namespace Hooks

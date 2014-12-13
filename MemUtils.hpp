@@ -1,6 +1,11 @@
 #pragma once
 
-#include "sptlib-stdafx.hpp"
+#include <cstddef>
+#include <limits>
+#include <string>
+#include <utility>
+#include <vector>
+using std::size_t;
 
 namespace MemUtils
 {

@@ -1,6 +1,8 @@
 #pragma once
 
-#include "sptlib-stdafx.hpp"
+#include <cstddef>
+#include <string>
+using std::size_t;
 
 class IHookableModule
 {

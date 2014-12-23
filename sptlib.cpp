@@ -20,19 +20,9 @@ std::wstring::size_type GetRightmostSlash( const std::wstring &str, std::wstring
 
 std::wstring GetFileName( const std::wstring &fileNameWithPath )
 {
-	size_t slashPos = fileNameWithPath.rfind('/');
+	size_t slashPos = GetRightmostSlash(fileNameWithPath);
 	if (slashPos != std::wstring::npos)
-	{
 		return std::wstring( fileNameWithPath, (slashPos + 1) );
-	}
-	else
-	{
-		slashPos = fileNameWithPath.rfind('\\');
-		if (slashPos != std::wstring::npos)
-		{
-			return std::wstring( fileNameWithPath, (slashPos + 1) );
-		}
-	}
 
 	return fileNameWithPath;
 }

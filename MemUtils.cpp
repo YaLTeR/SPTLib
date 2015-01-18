@@ -1,6 +1,7 @@
 #include "sptlib-stdafx.hpp"
 
 #include "MemUtils.hpp"
+#include "sptlib.hpp"
 
 namespace MemUtils
 {
@@ -58,6 +59,21 @@ namespace MemUtils
 			*pAddress = nullptr;
 
 		return INVALID_SEQUENCE_INDEX; // Didn't find anything.
+	}
+
+	std::future<ptnvec_size> Find(void** to, void* handle, const std::string& name, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound)
+	{
+		return std::async([=]() -> ptnvec_size {
+			ptnvec_size ptnNumber = INVALID_SEQUENCE_INDEX;
+			*to = GetSymbolAddress(handle, name.c_str());
+			if (!*to)
+				ptnNumber = FindUniqueSequence(start, length, patterns, to);
+			if (*to)
+				onFound(ptnNumber);
+			else
+				onNotFound();
+			return ptnNumber;
+		});
 	}
 
 	void* HookVTable(void** vtable, size_t index, const void* function)

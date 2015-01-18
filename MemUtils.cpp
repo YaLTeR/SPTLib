@@ -76,6 +76,18 @@ namespace MemUtils
 		});
 	}
 
+	std::future<ptnvec_size> FindPatternOnly(void** to, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound)
+	{
+		return std::async([=]() -> ptnvec_size {
+			auto ptnNumber = FindUniqueSequence(start, length, patterns, to);
+			if (*to)
+				onFound(ptnNumber);
+			else
+				onNotFound();
+			return ptnNumber;
+		});
+	}
+
 	void* HookVTable(void** vtable, size_t index, const void* function)
 	{
 		auto oldFunction = vtable[index];

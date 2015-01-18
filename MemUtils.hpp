@@ -29,6 +29,7 @@ namespace MemUtils
 	void* FindPattern(const void* start, size_t length, const byte* pattern, const char* mask);
 	ptnvec_size FindUniqueSequence(const void* start, size_t length, const ptnvec& patterns, void** pAddress = nullptr);
 	std::future<ptnvec_size> Find(void** to, void* handle, const std::string& name, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound);
+	std::future<ptnvec_size> FindPatternOnly(void** to, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound);
 	
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes);
 	void* HookVTable(void** vtable, size_t index, const void* function);

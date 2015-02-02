@@ -1,4 +1,4 @@
-#include "sptlib-stdafx.hpp"
+#include "../sptlib-stdafx.hpp"
 
 #include "../sptlib.hpp"
 #include "../Hooks.hpp"

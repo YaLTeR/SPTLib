@@ -1,4 +1,4 @@
-#include "sptlib-stdafx.hpp"
+#include "../sptlib-stdafx.hpp"
 
 #include "../MemUtils.hpp"
 #include "DetoursUtils.hpp"

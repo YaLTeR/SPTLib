@@ -22,7 +22,8 @@ namespace Hooks
 	{
 		HMODULE rv = ORIG_LoadLibraryA(lpFileName);
 
-		EngineDevMsg("Engine call: LoadLibraryA( \"%s\" ) => %p\n", lpFileName, rv);
+		if (DebugEnabled())
+			EngineDevMsg("Engine call: LoadLibraryA( \"%s\" ) => %p\n", lpFileName, rv);
 
 		if (rv != NULL)
 		{
@@ -36,7 +37,8 @@ namespace Hooks
 	{
 		HMODULE rv = ORIG_LoadLibraryW(lpFileName);
 
-		EngineDevMsg("Engine call: LoadLibraryW( \"%s\" ) => %p\n", Convert(lpFileName).c_str(), rv);
+		if (DebugEnabled())
+			EngineDevMsg("Engine call: LoadLibraryW( \"%s\" ) => %p\n", Convert(lpFileName).c_str(), rv);
 
 		if (rv != NULL)
 		{
@@ -50,7 +52,8 @@ namespace Hooks
 	{
 		HMODULE rv = ORIG_LoadLibraryExA(lpFileName, hFile, dwFlags);
 
-		EngineDevMsg("Engine call: LoadLibraryExA( \"%s\" ) => %p\n", lpFileName, rv);
+		if (DebugEnabled())
+			EngineDevMsg("Engine call: LoadLibraryExA( \"%s\" ) => %p\n", lpFileName, rv);
 
 		if (rv != NULL)
 		{
@@ -64,7 +67,8 @@ namespace Hooks
 	{
 		HMODULE rv = ORIG_LoadLibraryExW(lpFileName, hFile, dwFlags);
 
-		EngineDevMsg("Engine call: LoadLibraryExW( \"%s\" ) => %p\n", Convert(lpFileName).c_str(), rv);
+		if (DebugEnabled())
+			EngineDevMsg("Engine call: LoadLibraryExW( \"%s\" ) => %p\n", Convert(lpFileName).c_str(), rv);
 
 		if (rv != NULL)
 		{
@@ -84,7 +88,8 @@ namespace Hooks
 
 		BOOL rv = ORIG_FreeLibrary(hModule);
 
-		EngineDevMsg("Engine call: FreeLibrary( %p ) => %s\n", hModule, (rv ? "true" : "false"));
+		if (DebugEnabled())
+			EngineDevMsg("Engine call: FreeLibrary( %p ) => %s\n", hModule, (rv ? "true" : "false"));
 
 		return rv;
 	}

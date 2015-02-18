@@ -16,13 +16,6 @@ _dlsym ORIG_dlsym;
 
 namespace Hooks
 {
-	static char* sptlibDebug = getenv("SPTLIB_DEBUG");
-
-	static bool shouldPrintDLInfo()
-	{
-		return sptlibDebug && (sptlibDebug[0] == '1');
-	}
-
 	static void* get_dlsym_addr()
 	{
 		std::pair<void*, std::string> p = { nullptr, std::string() };
@@ -31,7 +24,7 @@ namespace Hooks
 			{
 				auto name = std::string(i->dlpi_name);
 				auto fileName = GetFileName(Convert(name));
-				if (shouldPrintDLInfo())
+				if (DebugEnabled())
 					EngineDevMsg("\tName: %s\n", Convert(fileName).c_str());
 				if (fileName.find(L"libdl.so") != std::wstring::npos)
 				{
@@ -96,7 +89,7 @@ namespace Hooks
 			ORIG_dlopen = reinterpret_cast<_dlopen>(dlsym(RTLD_NEXT, "dlopen"));
 
 		auto rv = ORIG_dlopen(filename, flag);
-		if (shouldPrintDLInfo())
+		if (DebugEnabled())
 			EngineDevMsg("Engine call: dlopen( \"%s\", %d ) => %p\n", filename, flag, rv);
 
 		if (rv && filename)
@@ -115,7 +108,7 @@ namespace Hooks
 				(*it)->Unhook();
 
 		auto rv = ORIG_dlclose(handle);
-		if (shouldPrintDLInfo())
+		if (DebugEnabled())
 			EngineDevMsg("Engine call: dlclose( %p ) => %d\n", handle, rv);
 
 		return rv;
@@ -129,7 +122,7 @@ namespace Hooks
 		auto rv = ORIG_dlsym(handle, name);
 
 		auto result = MemUtils::GetSymbolLookupResult(handle, rv);
-		if (shouldPrintDLInfo())
+		if (DebugEnabled())
 		{
 			if (result != rv)
 				EngineDevMsg("Engine call: dlsym( %p, %s ) => %p [returning %p]\n", handle, name, rv, result);

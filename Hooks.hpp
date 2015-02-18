@@ -19,5 +19,7 @@ namespace Hooks
 
 	void AddToHookedModules(IHookableModule* module);
 
+	bool DebugEnabled();
+
 	extern std::vector<IHookableModule*> modules;
 };

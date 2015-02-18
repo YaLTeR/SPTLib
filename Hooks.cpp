@@ -9,6 +9,12 @@ namespace Hooks
 	std::vector<IHookableModule*> modules;
 	static bool intercepted;
 
+	bool DebugEnabled()
+	{
+		static auto sptlibDebug = std::getenv("SPTLIB_DEBUG");
+		return sptlibDebug && (sptlibDebug[0] == '1');
+	}
+
 	void Init(bool needToIntercept)
 	{
 		_EngineDevMsg("SPTLib version " SPTLIB_VERSION ".\n");
@@ -73,7 +79,8 @@ namespace Hooks
 
 		if (!handle)
 		{
-			EngineDevMsg("Tried to hook an unlisted module: %s\n", Convert(name).c_str());
+			if (DebugEnabled())
+				EngineDevMsg("Tried to hook an unlisted module: %s\n", Convert(name).c_str());
 		}
 	}
 

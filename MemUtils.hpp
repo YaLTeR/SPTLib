@@ -60,17 +60,17 @@ namespace MemUtils
 		void RemoveInterception(const std::wstring& moduleName, size_t n, void** const functions[]);
 
 		template<typename FuncType, size_t N>
-		inline void _Intercept(const std::wstring& moduleName, std::array<std::pair<void**, void*>, N>& funcPairs, FuncType& target, typename identity<FuncType>::type detour)
+		inline void Intercept(const std::wstring& moduleName, std::array<std::pair<void**, void*>, N>& funcPairs, FuncType& target, typename identity<FuncType>::type detour)
 		{
 			funcPairs[N - 1] = { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) };
 			Intercept(moduleName, N, funcPairs.data());
 		}
 
 		template<typename FuncType, size_t N, typename... Rest>
-		inline void _Intercept(const std::wstring& moduleName, std::array<std::pair<void**, void*>, N>& funcPairs, FuncType& target, typename identity<FuncType>::type detour, Rest&... rest)
+		inline void Intercept(const std::wstring& moduleName, std::array<std::pair<void**, void*>, N>& funcPairs, FuncType& target, typename identity<FuncType>::type detour, Rest&... rest)
 		{
 			funcPairs[N - (sizeof...(rest) / 2 + 1)] = { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) };
-			_Intercept(moduleName, funcPairs, rest...);
+			Intercept(moduleName, funcPairs, rest...);
 		}
 	}
 
@@ -86,7 +86,7 @@ namespace MemUtils
 	{
 		std::array<std::pair<void**, void*>, sizeof...(rest) / 2 + 1> funcPairs;
 		funcPairs[0] = { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) };
-		detail::_Intercept(moduleName, funcPairs, rest...);
+		detail::Intercept(moduleName, funcPairs, rest...);
 	}
 
 	template<typename... FuncType>

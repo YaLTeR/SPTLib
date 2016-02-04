@@ -145,19 +145,17 @@ namespace Hooks
 			ORIG_dlclose = reinterpret_cast<_dlclose>(dlsym(RTLD_NEXT, "dlclose"));
 		
 		if (needToIntercept)
-			MemUtils::Intercept(L"POSIX", {
-				{ reinterpret_cast<void**>(&ORIG_dlopen), reinterpret_cast<void*>(dlopen) },
-				{ reinterpret_cast<void**>(&ORIG_dlclose), reinterpret_cast<void*>(dlclose) }
-			});
+			MemUtils::Intercept(L"POSIX",
+				ORIG_dlopen, dlopen,
+				ORIG_dlclose, dlclose);
 	}
 
 	void ClearInterception(bool needToIntercept)
 	{
 		if (needToIntercept)
-			MemUtils::RemoveInterception(L"POSIX", {
-				{ reinterpret_cast<void**>(&ORIG_dlopen), reinterpret_cast<void*>(dlopen) },
-				{ reinterpret_cast<void**>(&ORIG_dlclose), reinterpret_cast<void*>(dlclose) }
-			});
+			MemUtils::RemoveInterception(L"POSIX",
+				ORIG_dlopen,
+				ORIG_dlclose);
 
 		ORIG_dlopen = nullptr;
 		ORIG_dlclose = nullptr;

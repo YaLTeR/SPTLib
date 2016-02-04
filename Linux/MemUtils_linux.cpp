@@ -16,6 +16,19 @@ extern _dlclose ORIG_dlclose;
 
 namespace MemUtils
 {
+	namespace detail
+	{
+		void Intercept(const std::wstring& moduleName, size_t n, const std::pair<void**, void*> funcPairs[])
+		{
+			// Not implemented.
+		}
+
+		void RemoveInterception(const std::wstring& moduleName, size_t n, void** const functions[])
+		{
+			// Not implemented.
+		}
+	}
+
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
 	{
 		static auto pagesize = sysconf(_SC_PAGESIZE);
@@ -28,16 +41,6 @@ namespace MemUtils
 			*(reinterpret_cast<byte*>(addr)+i) = newBytes[i];
 
 		// TODO: Restore original protect.
-	}
-
-	void Intercept(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions)
-	{
-		// Not implemented.
-	}
-
-	void RemoveInterception(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions)
-	{
-		// Not implemented.
 	}
 
 	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize)

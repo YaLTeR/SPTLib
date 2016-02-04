@@ -23,7 +23,16 @@ namespace MemUtils
 	typedef std::vector<pattern_def_t> ptnvec;
 	typedef std::vector<pattern_def_t>::size_type ptnvec_size;
 
-	const ptnvec_size INVALID_SEQUENCE_INDEX = std::numeric_limits<ptnvec_size>::max();
+	template<typename T>
+	struct identity
+	{
+		typedef T type;
+	};
+
+	enum : ptnvec_size
+	{
+		INVALID_SEQUENCE_INDEX = std::numeric_limits<ptnvec_size>::max()
+	};
 
 	inline bool DataCompare(const byte* data, const byte* pattern, const char* mask);
 	void* FindPattern(const void* start, size_t length, const byte* pattern, const char* mask);
@@ -35,8 +44,6 @@ namespace MemUtils
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes);
 	void* HookVTable(void** vtable, size_t index, const void* function);
 
-	void Intercept(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions);
-	void RemoveInterception(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions);
 	void AddSymbolLookupHook(void* moduleHandle, void* original, void* target);
 	void RemoveSymbolLookupHook(void* moduleHandle, void* original);
 	void* GetSymbolLookupResult(void* handle, void* original);
@@ -46,4 +53,46 @@ namespace MemUtils
 	std::wstring GetModulePath(void* moduleHandle);
 	std::vector<void*> GetLoadedModules();
 	void* GetSymbolAddress(void* moduleHandle, const char* functionName);
+
+	namespace detail
+	{
+		void Intercept(const std::wstring& moduleName, size_t n, const std::pair<void**, void*> funcPairs[]);
+		void RemoveInterception(const std::wstring& moduleName, size_t n, void** const functions[]);
+
+		template<typename FuncType, size_t N>
+		inline void _Intercept(const std::wstring& moduleName, std::array<std::pair<void**, void*>, N>& funcPairs, FuncType& target, typename identity<FuncType>::type detour)
+		{
+			funcPairs[N - 1] = { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) };
+			Intercept(moduleName, N, funcPairs.data());
+		}
+
+		template<typename FuncType, size_t N, typename... Rest>
+		inline void _Intercept(const std::wstring& moduleName, std::array<std::pair<void**, void*>, N>& funcPairs, FuncType& target, typename identity<FuncType>::type detour, Rest&... rest)
+		{
+			funcPairs[N - (sizeof...(rest) / 2 + 1)] = { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) };
+			_Intercept(moduleName, funcPairs, rest...);
+		}
+	}
+
+	template<typename FuncType>
+	inline void Intercept(const std::wstring& moduleName, FuncType& target, typename identity<FuncType>::type detour)
+	{
+		const std::pair<void**, void*> temp[] = { { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) } };
+		detail::Intercept(moduleName, 1, temp);
+	}
+
+	template<typename FuncType, typename... Rest>
+	inline void Intercept(const std::wstring& moduleName, FuncType& target, typename identity<FuncType>::type detour, Rest&... rest)
+	{
+		std::array<std::pair<void**, void*>, sizeof...(rest) / 2 + 1> funcPairs;
+		funcPairs[0] = { reinterpret_cast<void**>(&target), reinterpret_cast<void*>(detour) };
+		detail::_Intercept(moduleName, funcPairs, rest...);
+	}
+
+	template<typename... FuncType>
+	inline void RemoveInterception(const std::wstring& moduleName, FuncType&... functions)
+	{
+		void** const temp[] = { reinterpret_cast<void**>(&functions)... };
+		detail::RemoveInterception(moduleName, sizeof...(functions), temp);
+	}
 }

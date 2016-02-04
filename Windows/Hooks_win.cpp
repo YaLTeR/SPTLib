@@ -103,24 +103,35 @@ namespace Hooks
 		ORIG_FreeLibrary = FreeLibrary;
 
 		if (needToIntercept)
-			MemUtils::Intercept(L"WinAPI", {
-				{ reinterpret_cast<void**>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
-				{ reinterpret_cast<void**>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
-				{ reinterpret_cast<void**>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
-				{ reinterpret_cast<void**>(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
-				{ reinterpret_cast<void**>(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
-			});
+		{
+			auto status = MH_Initialize();
+			if (status != MH_OK)
+			{
+				EngineWarning("Failed to initialize MinHook: %s.\n", MH_StatusToString(status));
+				return;
+			}
+
+			MemUtils::Intercept(L"WinAPI",
+				ORIG_LoadLibraryA, HOOKED_LoadLibraryA,
+				ORIG_LoadLibraryW, HOOKED_LoadLibraryW,
+				ORIG_LoadLibraryExA, HOOKED_LoadLibraryExA,
+				ORIG_LoadLibraryExW, HOOKED_LoadLibraryExW,
+				ORIG_FreeLibrary, HOOKED_FreeLibrary);
+		}
 	}
 
 	void ClearInterception(bool needToIntercept)
 	{
-		MemUtils::RemoveInterception(L"WinAPI", {
-			{ reinterpret_cast<void**>(&ORIG_LoadLibraryA), HOOKED_LoadLibraryA },
-			{ reinterpret_cast<void**>(&ORIG_LoadLibraryW), HOOKED_LoadLibraryW },
-			{ reinterpret_cast<void**>(&ORIG_LoadLibraryExA), HOOKED_LoadLibraryExA },
-			{ reinterpret_cast<void**>(&ORIG_LoadLibraryExW), HOOKED_LoadLibraryExW },
-			{ reinterpret_cast<void**>(&ORIG_FreeLibrary), HOOKED_FreeLibrary }
-		});
+		MemUtils::RemoveInterception(L"WinAPI",
+			ORIG_LoadLibraryA,
+			ORIG_LoadLibraryW,
+			ORIG_LoadLibraryExA,
+			ORIG_LoadLibraryExW,
+			ORIG_FreeLibrary);
+
+		auto status = MH_Uninitialize();
+		if (status != MH_OK)
+			EngineDevWarning("Failed to uninitialize MinHook: %s.\n", MH_StatusToString(status));
 		
 		ORIG_LoadLibraryA = nullptr;
 		ORIG_LoadLibraryW = nullptr;

@@ -5,6 +5,6 @@
 
 namespace DetoursUtils
 {
-	void AttachDetours(const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions);
-	void DetachDetours(const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions);
+	void AttachDetours(const std::wstring& moduleName, size_t n, const std::pair<void**, void*> funcPairs[]);
+	void DetachDetours(const std::wstring& moduleName, size_t n, void** const functions[]);
 }

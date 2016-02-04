@@ -6,9 +6,8 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <Psapi.h>
-#include <detours.h>
+#include <MinHook.h>
 #pragma comment( lib, "psapi.lib" )
-#pragma comment (lib, "detours.lib")
 #endif
 
 #include <clocale>
@@ -17,13 +16,15 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <array>
 #include <future>
 #include <limits>
+#include <map>
 #include <mutex>
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
+#include <unordered_map>
 #include <utility>
 
 using std::uintptr_t;

@@ -3,83 +3,131 @@
 #include "../sptlib.hpp"
 #include "DetoursUtils.hpp"
 
-void DetoursUtils::AttachDetours( const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
+namespace DetoursUtils
 {
-	unsigned int detourCount = 0;
-	for (auto funcPair : functions)
-	{
-		PVOID *pFunctionToDetour = funcPair.first;
-		PVOID functionToDetourWith = funcPair.second;
+	using namespace std;
 
-		if ((pFunctionToDetour && *pFunctionToDetour) && functionToDetourWith)
+	static map<void*, void*> tramp_to_original;
+	static mutex tramp_to_original_mutex;
+
+	void AttachDetours(const wstring& moduleName, size_t n, const pair<void**, void*> funcPairs[])
+	{
+		size_t hook_count = 0;
+		for (size_t i = 0; i < n; ++i)
 		{
-			// We have something to detour!
-			if (detourCount == 0)
+			void** target = funcPairs[i].first;
+			void* detour = funcPairs[i].second;
+			assert(target);
+
+			if (*target && detour)
 			{
-				DetourTransactionBegin();
-				DetourUpdateThread(GetCurrentThread());
+				void* original = *target;
+				auto status = MH_CreateHook(original, detour, target);
+				if (status != MH_OK)
+				{
+					EngineWarning(
+						"Error hooking %s!0x%p => 0x%p: %s.\n",
+						Convert(moduleName).c_str(),
+						original,
+						detour,
+						MH_StatusToString(status));
+					continue;
+				}
+
+				status = MH_QueueEnableHook(original);
+				if (status != MH_OK)
+				{
+					EngineWarning(
+						"Error queueing a hook %s!0x%p => 0x%p for enabling: %s.\n",
+						Convert(moduleName).c_str(),
+						original,
+						detour,
+						MH_StatusToString(status));
+					continue;
+				}
+
+				{
+					lock_guard<mutex> lock(tramp_to_original_mutex);
+					tramp_to_original[*target] = original;
+				}
+				hook_count++;
 			}
-
-			detourCount++;
-			DetourAttach(pFunctionToDetour, functionToDetourWith);
 		}
-	}
 
-	if (detourCount == 0)
-	{
-		EngineDevMsg("No %s functions to detour!\n", Convert(moduleName).c_str());
-	}
-	else
-	{
-		LONG error = DetourTransactionCommit();
-		if (error == NO_ERROR)
+		if (hook_count == 0)
 		{
-			EngineDevMsg("Detoured %d %s function(s).\n", detourCount, Convert(moduleName).c_str());
+			EngineDevMsg(
+				"No %s functions to hook.\n",
+				Convert(moduleName).c_str());
+			return;
+		}
+
+		auto status = MH_ApplyQueued();
+		if (status == MH_OK)
+		{
+			EngineDevMsg(
+				"Hooked %zu %s function%s.\n",
+				hook_count,
+				Convert(moduleName).c_str(),
+				hook_count > 1 ? "s" : "");
 		}
 		else
 		{
-			EngineWarning("Error detouring %d %s function(s): %d.\n", detourCount, Convert(moduleName).c_str(), error);
+			EngineWarning(
+				"Error applying %zu queued hooks for %s: %s.\n",
+				hook_count,
+				Convert(moduleName).c_str(),
+				MH_StatusToString(status));
 		}
 	}
-}
 
-void DetoursUtils::DetachDetours( const std::wstring& moduleName, const std::vector<std::pair<PVOID*, PVOID>>& functions )
-{
-	unsigned int detourCount = 0;
-	for (auto funcPair : functions)
+	void DetachDetours(const wstring& moduleName, size_t n, void** const functions[])
 	{
-		PVOID *pFunctionToUndetour = funcPair.first;
-		PVOID functionReplacement = funcPair.second;
-
-		if ((pFunctionToUndetour && *pFunctionToUndetour) && functionReplacement)
+		size_t hook_count = 0;
+		for (size_t i = 0; i < n; ++i)
 		{
-			// We have something to undetour!
-			if (detourCount == 0)
+			void** tramp = functions[i];
+			assert(tramp);
+
+			if (*tramp)
 			{
-				DetourTransactionBegin();
-				DetourUpdateThread(GetCurrentThread());
+				void* original;
+				{
+					lock_guard<mutex> lock(tramp_to_original_mutex);
+					original = tramp_to_original[*tramp];
+					tramp_to_original.erase(*tramp);
+				}
+
+				auto status = MH_RemoveHook(original);
+				if (status != MH_OK)
+				{
+					EngineWarning(
+						"Error unhooking %s!0x%p => 0x%p: %s.\n",
+						Convert(moduleName).c_str(),
+						original,
+						*tramp,
+						MH_StatusToString(status));
+					continue;
+				}
+
+				*tramp = original;
+				hook_count++;
 			}
-
-			detourCount++;
-			DetourDetach(pFunctionToUndetour, functionReplacement);
 		}
-	}
 
-	if (detourCount == 0)
-	{
-		EngineDevMsg("No %s functions to undetour!\n", Convert(moduleName).c_str());
-		return;
-	}
-	else
-	{
-		LONG error = DetourTransactionCommit();
-		if (error == NO_ERROR)
+		if (hook_count)
 		{
-			EngineDevMsg("Removed %d %s function detour(s).\n", detourCount, Convert(moduleName).c_str());
-		}
-		else
+			EngineDevMsg(
+				"Unhooked %zu %s function%s.\n",
+				hook_count,
+				Convert(moduleName).c_str(),
+				hook_count > 1 ? "s" : "");
+		} else
 		{
-			EngineWarning("Error removing %d %s function detour(s): %d.\n", detourCount, Convert(moduleName).c_str(), error);
+			EngineDevMsg(
+				"No %s functions to unhook.\n",
+				Convert(moduleName).c_str());
+			return;
 		}
 	}
 }

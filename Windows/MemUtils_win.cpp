@@ -5,6 +5,19 @@
 
 namespace MemUtils
 {
+	namespace detail
+	{
+		void Intercept(const std::wstring& moduleName, size_t n, const std::pair<void**, void*> funcPairs[])
+		{
+			DetoursUtils::AttachDetours(moduleName, n, funcPairs);
+		}
+
+		void RemoveInterception(const std::wstring& moduleName, size_t n, void** const functions[])
+		{
+			DetoursUtils::DetachDetours(moduleName, n, functions);
+		}
+	}
+
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
 	{
 		DWORD dwOldProtect;
@@ -16,16 +29,6 @@ namespace MemUtils
 		// The first call might have failed, but the target might have still been accessible.
 		if (result)
 			VirtualProtect(addr, length, dwOldProtect, &dwOldProtect);
-	}
-
-	void Intercept(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions)
-	{
-		DetoursUtils::AttachDetours(moduleName, functions);
-	}
-
-	void RemoveInterception(const std::wstring& moduleName, const std::vector<std::pair<void**, void*>>& functions)
-	{
-		DetoursUtils::DetachDetours(moduleName, functions);
 	}
 
 	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize)

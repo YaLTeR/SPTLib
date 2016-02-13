@@ -29,6 +29,11 @@ namespace MemUtils
 		}
 	}
 
+	void MarkAsExecutable(void* addr)
+	{
+		// Not implemented.
+	}
+
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
 	{
 		static auto pagesize = sysconf(_SC_PAGESIZE);

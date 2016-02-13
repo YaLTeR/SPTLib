@@ -41,6 +41,13 @@ namespace MemUtils
 	std::future<ptnvec_size> Find(void** to, void* handle, const std::string& name, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound);
 	std::future<ptnvec_size> FindPatternOnly(void** to, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound);
 	
+	template<typename T>
+	inline void MarkAsExecutable(T addr)
+	{
+		return MarkAsExecutable(static_cast<void*>(addr));
+	}
+	void MarkAsExecutable(void* addr);
+
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes);
 	void* HookVTable(void** vtable, size_t index, const void* function);
 

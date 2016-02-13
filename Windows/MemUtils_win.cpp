@@ -18,6 +18,40 @@ namespace MemUtils
 		}
 	}
 
+	void MarkAsExecutable(void* addr)
+	{
+		if (!addr)
+			return;
+
+		MEMORY_BASIC_INFORMATION mi;
+		if (!VirtualQuery(addr, &mi, sizeof(MEMORY_BASIC_INFORMATION)))
+			return;
+
+		if (mi.State != MEM_COMMIT)
+			return;
+
+		DWORD protect;
+		switch (mi.Protect) {
+		case PAGE_READONLY:
+			protect = PAGE_EXECUTE_READ;
+			break;
+
+		case PAGE_READWRITE:
+			protect = PAGE_EXECUTE_READWRITE;
+			break;
+
+		case PAGE_WRITECOPY:
+			protect = PAGE_EXECUTE_WRITECOPY;
+			break;
+
+		default:
+			return;
+		}
+
+		DWORD temp;
+		VirtualProtect(addr, 1, protect, &temp);
+	}
+
 	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
 	{
 		DWORD dwOldProtect;

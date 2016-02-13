@@ -44,7 +44,7 @@ namespace MemUtils
 	template<typename T>
 	inline void MarkAsExecutable(T addr)
 	{
-		return MarkAsExecutable(static_cast<void*>(addr));
+		MarkAsExecutable(reinterpret_cast<void*>(addr));
 	}
 	void MarkAsExecutable(void* addr);
 

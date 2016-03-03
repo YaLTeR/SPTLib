@@ -1,45 +1,141 @@
 #pragma once
 
-#include <cstddef>
-#include <functional>
-#include <future>
-#include <limits>
-#include <string>
-#include <utility>
-#include <vector>
-using std::size_t;
+#include "patterns.hpp"
 
 namespace MemUtils
 {
-	typedef unsigned char byte;
+	using namespace patterns;
 
-	typedef struct
+	bool GetModuleInfo(const std::wstring& moduleName, void** moduleHandle, void** moduleBase, size_t* moduleSize);
+	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize);
+	std::wstring GetModulePath(void* moduleHandle);
+	std::vector<void*> GetLoadedModules();
+	void* GetSymbolAddress(void* moduleHandle, const char* functionName);
+
+	inline uintptr_t find_pattern(const void* start, size_t length, const PatternWrapper& pattern)
 	{
-		std::string build;
-		std::vector<byte> pattern;
-		std::string mask;
-	} pattern_def_t;
+		if (length < pattern.length())
+			return 0;
 
-	typedef std::vector<pattern_def_t> ptnvec;
-	typedef std::vector<pattern_def_t>::size_type ptnvec_size;
+		auto p = static_cast<const uint8_t*>(start);
+		for (auto end = p + length - pattern.length(); p <= end; ++p) {
+			if (pattern.match(p))
+				return reinterpret_cast<uintptr_t>(p);
+		}
 
-	template<typename T>
-	struct identity
+		return 0;
+	}
+
+	template<size_t N>
+	auto find_first_sequence(
+		const void* start,
+		size_t length,
+		const std::array<PatternWrapper, N>& patterns,
+		uintptr_t& address)
 	{
-		typedef T type;
-	};
+		for (auto pattern = patterns.cbegin(); pattern != patterns.cend(); ++pattern) {
+			address = find_pattern(start, length, *pattern);
+			if (address)
+				return pattern;
+		}
+		address = 0;
+		return patterns.cend();
+	}
 
-	enum : ptnvec_size
+	template<typename Result, size_t N>
+	inline auto find_first_sequence(
+		const void* start,
+		size_t length,
+		const std::array<PatternWrapper, N>& patterns,
+		Result& address)
 	{
-		INVALID_SEQUENCE_INDEX = std::numeric_limits<ptnvec_size>::max()
-	};
+		uintptr_t addr;
+		auto rv = find_first_sequence(start, length, patterns, addr);
+		address = reinterpret_cast<Result>(addr);
+		return rv;
+	}
 
-	inline bool DataCompare(const byte* data, const byte* pattern, const char* mask);
-	void* FindPattern(const void* start, size_t length, const byte* pattern, const char* mask);
-	ptnvec_size FindUniqueSequence(const void* start, size_t length, const ptnvec& patterns, void** pAddress = nullptr);
-	ptnvec_size FindFirstSequence(const void* start, size_t length, const ptnvec& patterns, void** pAddress = nullptr);
-	std::future<ptnvec_size> Find(void** to, void* handle, const std::string& name, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound);
-	std::future<ptnvec_size> FindPatternOnly(void** to, const void* start, size_t length, const ptnvec& patterns, const std::function<void(ptnvec_size)>& onFound, const std::function<void(void)>& onNotFound);
+	template<size_t N>
+	auto find_unique_sequence(
+		const void* start,
+		size_t length,
+		const std::array<PatternWrapper, N>& patterns,
+		uintptr_t& address)
+	{
+		auto pattern = find_first_sequence(start, length, patterns, address);
+		if (pattern != patterns.cend()) {
+			// length != 0
+			// start <= addr < start + length
+			// 0 <= addr - start < length
+			// 1 <= addr - start + 1 < length + 1
+			// -length - 1 < -(addr - start + 1) <= -1
+			// 0 <= length - (addr - start + 1) <= length - 1
+			auto new_length = length - (address - reinterpret_cast<uintptr_t>(start) + 1);
+
+			uintptr_t temp;
+			if (find_first_sequence(reinterpret_cast<const void*>(address + 1), new_length, patterns, temp) != patterns.cend()) {
+				// Ambiguous.
+				address = 0;
+				return patterns.cend();
+			} else {
+				return pattern;
+			}
+		}
+
+		address = 0;
+		return patterns.cend();
+	}
+
+	template<typename Result, size_t N>
+	inline auto find_unique_sequence(
+		const void* start,
+		size_t length,
+		const std::array<PatternWrapper, N>& patterns,
+		Result& address)
+	{
+		uintptr_t addr;
+		auto rv = find_unique_sequence(start, length, patterns, addr);
+		// C-style cast... Because reinterpret_cast can't cast uintptr_t to integral types.
+		address = (Result) addr;
+		return rv;
+	}
+
+	template<typename Result, size_t N>
+	auto find_function_async(
+		Result& address,
+		void* handle,
+		const char* name,
+		const void* start,
+		size_t length,
+		const std::array<PatternWrapper, N>& patterns,
+		const std::function<void(typename std::array<PatternWrapper, N>::const_iterator)> onFound = [](auto it) {})
+	{
+		return std::async([=, &address, &patterns]() {
+			auto it = patterns.cend();
+			address = reinterpret_cast<Result>(GetSymbolAddress(handle, name));
+			if (!address)
+				it = find_unique_sequence(start, length, patterns, address);
+			if (address)
+				onFound(it);
+			return it;
+		});
+	}
+
+	template<typename Result, size_t N>
+	auto find_unique_sequence_async(
+		Result& address,
+		const void* start,
+		size_t length,
+		const std::array<PatternWrapper, N>& patterns,
+		const std::function<void(typename std::array<PatternWrapper, N>::const_iterator)> onFound = [](auto it) {})
+	{
+		return std::async([=, &address, &patterns]() {
+			auto it = find_unique_sequence(start, length, patterns, address);
+			if (address)
+				onFound(it);
+			return it;
+		});
+	}
 	
 	template<typename T>
 	inline void MarkAsExecutable(T addr)
@@ -55,11 +151,11 @@ namespace MemUtils
 	void RemoveSymbolLookupHook(void* moduleHandle, void* original);
 	void* GetSymbolLookupResult(void* handle, void* original);
 
-	bool GetModuleInfo(const std::wstring& moduleName, void** moduleHandle, void** moduleBase, size_t* moduleSize);
-	bool GetModuleInfo(void* moduleHandle, void** moduleBase, size_t* moduleSize);
-	std::wstring GetModulePath(void* moduleHandle);
-	std::vector<void*> GetLoadedModules();
-	void* GetSymbolAddress(void* moduleHandle, const char* functionName);
+	template<typename T>
+	struct identity
+	{
+		typedef T type;
+	};
 
 	namespace detail
 	{

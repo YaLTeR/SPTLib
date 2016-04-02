@@ -89,30 +89,20 @@ namespace patterns
 	}
 
 	template<size_t PatternLength>
-	class Pattern
+	struct Pattern
 	{
-		const char* name_;
 		const std::array<uint8_t, PatternLength> bytes;
 		const std::array<char, PatternLength> mask;
 
-	public:
-		constexpr Pattern(const char* name, const char* pattern)
-			: name_(name)
-			, bytes(detail::pattern_bytes<PatternLength>(pattern))
+		constexpr Pattern(const char* pattern)
+			: bytes(detail::pattern_bytes<PatternLength>(pattern))
 			, mask(detail::pattern_mask<PatternLength>(pattern))
 		{
 		}
-
-		constexpr const char* name() const
-		{
-			return name_;
-		}
-
-		friend class PatternWrapper;
 	};
 
-	#define PATTERN(name, pattern) \
-		::patterns::Pattern<::patterns::count_bytes(pattern)>(name, pattern)
+	#define PATTERN(pattern) \
+		::patterns::Pattern<::patterns::count_bytes(pattern)>(pattern)
 
 	class PatternWrapper
 	{
@@ -123,11 +113,17 @@ namespace patterns
 
 	public:
 		template<size_t PatternLength>
-		constexpr PatternWrapper(const Pattern<PatternLength>& pattern)
-			: name_(pattern.name_)
+		constexpr PatternWrapper(const char* name, const Pattern<PatternLength>& pattern)
+			: name_(name)
 			, bytes(&pattern.bytes.front())
 			, mask(&pattern.mask.front())
 			, length_(PatternLength)
+		{
+		}
+
+		template<size_t PatternLength>
+		constexpr PatternWrapper(const Pattern<PatternLength>& pattern)
+			: PatternWrapper("", pattern)
 		{
 		}
 
@@ -166,37 +162,52 @@ namespace patterns
 	 * it puts all __VA_ARGS__ arguments into the first one.
 	 */
 	#define MAKE_PATTERN_1(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _1 = PATTERN(pattern_name, pattern);
+		static constexpr auto ptn_ ## name ## _1 = PATTERN(pattern);
 	#define MAKE_PATTERN_2(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _2 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _2 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_1(name, __VA_ARGS__),)
 	#define MAKE_PATTERN_3(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _3 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _3 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_2(name, __VA_ARGS__),)
 	#define MAKE_PATTERN_4(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _4 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _4 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_3(name, __VA_ARGS__),)
 	#define MAKE_PATTERN_5(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _5 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _5 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_4(name, __VA_ARGS__),)
 	#define MAKE_PATTERN_6(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _6 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _6 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_5(name, __VA_ARGS__),)
 	#define MAKE_PATTERN_7(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _7 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _7 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_6(name, __VA_ARGS__),)
 	#define MAKE_PATTERN_8(name, pattern_name, pattern, ...) \
-		static constexpr auto ptn_ ## name ## _8 = PATTERN(pattern_name, pattern); \
+		static constexpr auto ptn_ ## name ## _8 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_7(name, __VA_ARGS__),)
 
-	#define NAME_PATTERN_1(name) ptn_ ## name ## _1
-	#define NAME_PATTERN_2(name) ptn_ ## name ## _2, NAME_PATTERN_1(name)
-	#define NAME_PATTERN_3(name) ptn_ ## name ## _3, NAME_PATTERN_2(name)
-	#define NAME_PATTERN_4(name) ptn_ ## name ## _4, NAME_PATTERN_3(name)
-	#define NAME_PATTERN_5(name) ptn_ ## name ## _5, NAME_PATTERN_4(name)
-	#define NAME_PATTERN_6(name) ptn_ ## name ## _6, NAME_PATTERN_5(name)
-	#define NAME_PATTERN_7(name) ptn_ ## name ## _7, NAME_PATTERN_6(name)
-	#define NAME_PATTERN_8(name) ptn_ ## name ## _8, NAME_PATTERN_7(name)
+	#define NAME_PATTERN_1(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _1 }
+	#define NAME_PATTERN_2(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _2 }, \
+		CONCATENATE(NAME_PATTERN_1(name, __VA_ARGS__),)
+	#define NAME_PATTERN_3(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _3 }, \
+		CONCATENATE(NAME_PATTERN_2(name, __VA_ARGS__),)
+	#define NAME_PATTERN_4(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _4 }, \
+		CONCATENATE(NAME_PATTERN_3(name, __VA_ARGS__),)
+	#define NAME_PATTERN_5(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _5 }, \
+		CONCATENATE(NAME_PATTERN_4(name, __VA_ARGS__),)
+	#define NAME_PATTERN_6(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _6 }, \
+		CONCATENATE(NAME_PATTERN_5(name, __VA_ARGS__),)
+	#define NAME_PATTERN_7(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _7 }, \
+		CONCATENATE(NAME_PATTERN_6(name, __VA_ARGS__),)
+	#define NAME_PATTERN_8(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _8 }, \
+		CONCATENATE(NAME_PATTERN_7(name, __VA_ARGS__),)
 
 	#define FOR_EACH2_RSEQ_N 8, 0, 7, 0, 6, 0, 5, 0, 4, 0, 3, 0, 2, 0, 1
 	#define FOR_EACH2_ARG_N(__1, __1_, __2, __2_, __3, __3_, __4, __4_, __5, __5_, __6, __6_, __7, __7_, __8, __8_, N, ...) N
@@ -206,8 +217,8 @@ namespace patterns
 	#define MAKE_PATTERNS_(N, ...) CONCATENATE(CONCATENATE(MAKE_PATTERN_, N)(__VA_ARGS__),)
 	#define MAKE_PATTERNS(name, ...) MAKE_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
 
-	#define NAME_PATTERNS_(N, name) CONCATENATE(NAME_PATTERN_, N)(name)
-	#define NAME_PATTERNS(name, ...) NAME_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name)
+	#define NAME_PATTERNS_(N, ...) CONCATENATE(CONCATENATE(NAME_PATTERN_, N)(__VA_ARGS__),)
+	#define NAME_PATTERNS(name, ...) NAME_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
 
 	/*
 	 * Defines an array of compile-time patterns.
@@ -222,10 +233,11 @@ namespace patterns
 	 *
 	 * is converted into:
 	 *
-	 *	static constexpr auto ptn_MyPattern_2 = ::patterns::Pattern<::patterns::count_bytes("11 22 33 ?? ?? FF AC")>("HL-SteamPipe", "11 22 33 ?? ?? FF AC");
-	 *	static constexpr auto ptn_MyPattern_1 = ::patterns::Pattern<::patterns::count_bytes("C0 AB 22 33 ?? 11")>("HL-NGHL", "C0 AB 22 33 ?? 11");
+	 *	static constexpr auto ptn_MyPattern_2 = ::patterns::Pattern<::patterns::count_bytes("11 22 33 ?? ?? FF AC")>("11 22 33 ?? ?? FF AC");
+	 *	static constexpr auto ptn_MyPattern_1 = ::patterns::Pattern<::patterns::count_bytes("C0 AB 22 33 ?? 11")>("C0 AB 22 33 ?? 11");
 	 *	constexpr auto MyPattern = ::patterns::make_pattern_array(
-	 *		ptn_MyPattern_2, ptn_MyPattern_2
+	 *		PatternWrapper{ "HL-SteamPipe", ptn_MyPattern_2 },
+	 *		PatternWrapper{ "HL-NGHL", ptn_MyPattern_1 }
 	 *	);
 	 */
 	#define PATTERNS(name, ...) \

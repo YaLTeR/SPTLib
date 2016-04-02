@@ -108,15 +108,6 @@ namespace patterns
 			return name_;
 		}
 
-		inline bool match(const uint8_t* memory) const
-		{
-			for (size_t i = 0; i < PatternLength; ++i)
-				if (mask[i] == 'x' && memory[i] != bytes[i])
-					return false;
-
-			return true;
-		}
-
 		friend class PatternWrapper;
 	};
 

@@ -26,44 +26,48 @@ namespace MemUtils
 		return 0;
 	}
 
-	template<size_t N>
-	auto find_first_sequence(
+	template<class Iterator>
+	Iterator find_first_sequence(
 		const void* start,
 		size_t length,
-		const std::array<PatternWrapper, N>& patterns,
+		Iterator begin,
+		Iterator end,
 		uintptr_t& address)
 	{
-		for (auto pattern = patterns.cbegin(); pattern != patterns.cend(); ++pattern) {
+		for (auto pattern = begin; pattern != end; ++pattern) {
 			address = find_pattern(start, length, *pattern);
 			if (address)
 				return pattern;
 		}
 		address = 0;
-		return patterns.cend();
+		return end;
 	}
 
-	template<typename Result, size_t N>
-	inline auto find_first_sequence(
+	template<typename Result, class Iterator>
+	inline Iterator find_first_sequence(
 		const void* start,
 		size_t length,
-		const std::array<PatternWrapper, N>& patterns,
+		Iterator begin,
+		Iterator end,
 		Result& address)
 	{
 		uintptr_t addr;
-		auto rv = find_first_sequence(start, length, patterns, addr);
-		address = reinterpret_cast<Result>(addr);
+		auto rv = find_first_sequence(start, length, begin, end, addr);
+		// C-style cast... Because reinterpret_cast can't cast uintptr_t to integral types.
+		address = (Result) addr;
 		return rv;
 	}
 
-	template<size_t N>
-	auto find_unique_sequence(
+	template<class Iterator>
+	Iterator find_unique_sequence(
 		const void* start,
 		size_t length,
-		const std::array<PatternWrapper, N>& patterns,
+		Iterator begin,
+		Iterator end,
 		uintptr_t& address)
 	{
-		auto pattern = find_first_sequence(start, length, patterns, address);
-		if (pattern != patterns.cend()) {
+		auto pattern = find_first_sequence(start, length, begin, end, address);
+		if (pattern != end) {
 			// length != 0
 			// start <= addr < start + length
 			// 0 <= addr - start < length
@@ -73,64 +77,97 @@ namespace MemUtils
 			auto new_length = length - (address - reinterpret_cast<uintptr_t>(start) + 1);
 
 			uintptr_t temp;
-			if (find_first_sequence(reinterpret_cast<const void*>(address + 1), new_length, patterns, temp) != patterns.cend()) {
+			if (find_first_sequence(reinterpret_cast<const void*>(address + 1), new_length, begin, end, temp) != end) {
 				// Ambiguous.
 				address = 0;
-				return patterns.cend();
+				return end;
 			} else {
 				return pattern;
 			}
 		}
 
 		address = 0;
-		return patterns.cend();
+		return end;
 	}
 
-	template<typename Result, size_t N>
-	inline auto find_unique_sequence(
+	template<typename Result, class Iterator>
+	inline Iterator find_unique_sequence(
 		const void* start,
 		size_t length,
-		const std::array<PatternWrapper, N>& patterns,
+		Iterator begin,
+		Iterator end,
 		Result& address)
 	{
 		uintptr_t addr;
-		auto rv = find_unique_sequence(start, length, patterns, addr);
+		auto rv = find_unique_sequence(start, length, begin, end, addr);
 		// C-style cast... Because reinterpret_cast can't cast uintptr_t to integral types.
 		address = (Result) addr;
 		return rv;
 	}
 
-	template<typename Result, size_t N>
-	auto find_function_async(
+	template<typename Result, class Iterator>
+	inline auto find_unique_sequence_async(
 		Result& address,
-		void* handle,
-		const char* name,
 		const void* start,
 		size_t length,
-		const std::array<PatternWrapper, N>& patterns,
-		const std::function<void(typename std::array<PatternWrapper, N>::const_iterator)> onFound = [](auto it) {})
+		Iterator begin,
+		Iterator end)
 	{
-		return std::async([=, &address, &patterns]() {
-			auto it = patterns.cend();
-			address = reinterpret_cast<Result>(GetSymbolAddress(handle, name));
-			if (!address)
-				it = find_unique_sequence(start, length, patterns, address);
+		return std::async(find_unique_sequence<Result, Iterator>, start, length, begin, end, std::ref(address));
+	}
+
+	template<typename Result, class Iterator>
+	auto find_unique_sequence_async(
+		Result& address,
+		const void* start,
+		size_t length,
+		Iterator begin,
+		Iterator end,
+		const std::function<void(Iterator)> onFound)
+	{
+		return std::async([=, &address]() {
+			auto it = find_unique_sequence(start, length, begin, end, address);
 			if (address)
 				onFound(it);
 			return it;
 		});
 	}
 
-	template<typename Result, size_t N>
-	auto find_unique_sequence_async(
+	template<typename Result, class Iterator>
+	auto find_function_async(
 		Result& address,
+		void* handle,
+		const char* name,
 		const void* start,
 		size_t length,
-		const std::array<PatternWrapper, N>& patterns,
-		const std::function<void(typename std::array<PatternWrapper, N>::const_iterator)> onFound = [](auto it) {})
+		Iterator begin,
+		Iterator end)
 	{
-		return std::async([=, &address, &patterns]() {
-			auto it = find_unique_sequence(start, length, patterns, address);
+		return std::async([=, &address]() {
+			auto it = end;
+			address = reinterpret_cast<Result>(GetSymbolAddress(handle, name));
+			if (!address)
+				it = find_unique_sequence(start, length, begin, end, address);
+			return it;
+		});
+	}
+
+	template<typename Result, class Iterator>
+	auto find_function_async(
+		Result& address,
+		void* handle,
+		const char* name,
+		const void* start,
+		size_t length,
+		Iterator begin,
+		Iterator end,
+		const std::function<void(Iterator)> onFound)
+	{
+		return std::async([=, &address]() {
+			auto it = end;
+			address = reinterpret_cast<Result>(GetSymbolAddress(handle, name));
+			if (!address)
+				it = find_unique_sequence(start, length, begin, end, address);
 			if (address)
 				onFound(it);
 			return it;

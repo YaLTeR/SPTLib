@@ -22,22 +22,39 @@ public:
 	virtual void TryHookAll(bool needToIntercept) = 0;
 
 	template<typename Result, size_t N>
-	auto FindFunctionAsync(
+	inline auto FindAsync(
 		Result& address,
-		const char* name,
-		const std::array<patterns::PatternWrapper, N>& patterns,
-		const std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound = [](auto it) {})
+		const std::array<patterns::PatternWrapper, N>& patterns)
 	{
-		return MemUtils::find_function_async(address, m_Handle, name, m_Base, m_Length, patterns, onFound);
+		return MemUtils::find_unique_sequence_async(reinterpret_cast<uintptr_t&>(address), m_Base, m_Length, patterns.cbegin(), patterns.cend());
 	}
 
 	template<typename Result, size_t N>
-	auto FindAsync(
+	inline auto FindAsync(
 		Result& address,
 		const std::array<patterns::PatternWrapper, N>& patterns,
-		const std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound = [](auto it) {})
+		const std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound)
 	{
-		return MemUtils::find_unique_sequence_async(address, m_Base, m_Length, patterns, onFound);
+		return MemUtils::find_unique_sequence_async(reinterpret_cast<uintptr_t&>(address), m_Base, m_Length, patterns.cbegin(), patterns.cend(), onFound);
+	}
+
+	template<typename Result, size_t N>
+	inline auto FindFunctionAsync(
+		Result& address,
+		const char* name,
+		const std::array<patterns::PatternWrapper, N>& patterns)
+	{
+		return MemUtils::find_function_async(reinterpret_cast<uintptr_t&>(address), m_Handle, name, m_Base, m_Length, patterns.cbegin(), patterns.cend());
+	}
+
+	template<typename Result, size_t N>
+	inline auto FindFunctionAsync(
+		Result& address,
+		const char* name,
+		const std::array<patterns::PatternWrapper, N>& patterns,
+		const std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound)
+	{
+		return MemUtils::find_function_async(reinterpret_cast<uintptr_t&>(address), m_Handle, name, m_Base, m_Length, patterns.cbegin(), patterns.cend(), onFound);
 	}
 
 protected:

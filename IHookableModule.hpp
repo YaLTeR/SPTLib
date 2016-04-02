@@ -21,21 +21,39 @@ public:
 
 	virtual void TryHookAll(bool needToIntercept) = 0;
 
+	/*
+	 * If I don't have these reinterpret_cast<uintptr_t&>'s here, the underlying std::async
+	 * will be called a lot of times, each with a different argument type. This will lead to it
+	 * generating a huge amount of duplicate code in the binary (over 100 KB). For some reason the
+	 * optimizer does not merge the said code together. Anyway, Result is usually some function
+	 * pointer, so this works well.
+	 */
 	template<typename Result, size_t N>
 	inline auto FindAsync(
 		Result& address,
 		const std::array<patterns::PatternWrapper, N>& patterns)
 	{
-		return MemUtils::find_unique_sequence_async(reinterpret_cast<uintptr_t&>(address), m_Base, m_Length, patterns.cbegin(), patterns.cend());
+		return MemUtils::find_unique_sequence_async(
+			reinterpret_cast<uintptr_t&>(address),
+			m_Base,
+			m_Length,
+			patterns.cbegin(),
+			patterns.cend());
 	}
 
 	template<typename Result, size_t N>
 	inline auto FindAsync(
 		Result& address,
 		const std::array<patterns::PatternWrapper, N>& patterns,
-		const std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound)
+		std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound)
 	{
-		return MemUtils::find_unique_sequence_async(reinterpret_cast<uintptr_t&>(address), m_Base, m_Length, patterns.cbegin(), patterns.cend(), onFound);
+		return MemUtils::find_unique_sequence_async(
+			reinterpret_cast<uintptr_t&>(address),
+			m_Base,
+			m_Length,
+			patterns.cbegin(),
+			patterns.cend(),
+			onFound);
 	}
 
 	template<typename Result, size_t N>
@@ -44,7 +62,14 @@ public:
 		const char* name,
 		const std::array<patterns::PatternWrapper, N>& patterns)
 	{
-		return MemUtils::find_function_async(reinterpret_cast<uintptr_t&>(address), m_Handle, name, m_Base, m_Length, patterns.cbegin(), patterns.cend());
+		return MemUtils::find_function_async(
+			reinterpret_cast<uintptr_t&>(address),
+			m_Handle,
+			name,
+			m_Base,
+			m_Length,
+			patterns.cbegin(),
+			patterns.cend());
 	}
 
 	template<typename Result, size_t N>
@@ -52,9 +77,17 @@ public:
 		Result& address,
 		const char* name,
 		const std::array<patterns::PatternWrapper, N>& patterns,
-		const std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound)
+		std::function<void(typename std::array<patterns::PatternWrapper, N>::const_iterator)> onFound)
 	{
-		return MemUtils::find_function_async(reinterpret_cast<uintptr_t&>(address), m_Handle, name, m_Base, m_Length, patterns.cbegin(), patterns.cend(), onFound);
+		return MemUtils::find_function_async(
+			reinterpret_cast<uintptr_t&>(address),
+			m_Handle,
+			name,
+			m_Base,
+			m_Length,
+			patterns.cbegin(),
+			patterns.cend(),
+			onFound);
 	}
 
 protected:

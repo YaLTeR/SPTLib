@@ -123,7 +123,7 @@ namespace MemUtils
 		size_t length,
 		Iterator begin,
 		Iterator end,
-		const std::function<void(Iterator)> onFound)
+		std::function<void(Iterator)> onFound)
 	{
 		return std::async([=, &address]() {
 			auto it = find_unique_sequence(start, length, begin, end, address);
@@ -161,7 +161,7 @@ namespace MemUtils
 		size_t length,
 		Iterator begin,
 		Iterator end,
-		const std::function<void(Iterator)> onFound)
+		std::function<void(Iterator)> onFound)
 	{
 		return std::async([=, &address]() {
 			auto it = end;

@@ -157,8 +157,8 @@ namespace patterns
 	#define CONCATENATE(arg1, arg2) CONCATENATE1(arg1, arg2)
 
 	/*
-	 * Concatenate with empty because otherwise
-	 * it puts all __VA_ARGS__ arguments into the first one.
+	 * Concatenate with empty because otherwise the MSVC preprocessor
+	 * puts all __VA_ARGS__ arguments into the first one.
 	 */
 	#define MAKE_PATTERN_1(name, pattern_name, pattern, ...) \
 		static constexpr auto ptn_ ## name ## _1 = PATTERN(pattern);
@@ -184,6 +184,10 @@ namespace patterns
 		static constexpr auto ptn_ ## name ## _8 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_7(name, __VA_ARGS__),)
 
+	/*
+	 * Cannot concatenate with empty in a way compatible with non-MSVC
+	 * here because there are commas inside the macros.
+	 */
 #ifdef _MSC_VER // MSVC
 	#define NAME_PATTERN_1(name, pattern_name, pattern, ...) \
 		PatternWrapper{ pattern_name, ptn_ ## name ## _1 }

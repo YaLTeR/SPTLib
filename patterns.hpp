@@ -46,7 +46,7 @@ namespace patterns
 		}
 
 		template<>
-		constexpr std::array<uint8_t, 0> pattern_bytes(const char* pattern)
+		constexpr std::array<uint8_t, 0> pattern_bytes(const char*)
 		{
 			return std::array<uint8_t, 0>();
 		}
@@ -68,7 +68,7 @@ namespace patterns
 		}
 
 		template<>
-		constexpr std::array<char, 0> pattern_mask(const char* pattern)
+		constexpr std::array<char, 0> pattern_mask(const char*)
 		{
 			return std::array<char, 0>();
 		}
@@ -153,9 +153,8 @@ namespace patterns
 		return{ PatternWrapper(patterns)... };
 	}
 
+	#define CONCATENATE1(arg1, arg2) arg1 ## arg2
 	#define CONCATENATE(arg1, arg2) CONCATENATE1(arg1, arg2)
-	#define CONCATENATE1(arg1, arg2) CONCATENATE2(arg1, arg2)
-	#define CONCATENATE2(arg1, arg2) arg1 ## arg2
 
 	/*
 	 * Concatenate with empty because otherwise
@@ -185,6 +184,7 @@ namespace patterns
 		static constexpr auto ptn_ ## name ## _8 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_7(name, __VA_ARGS__),)
 
+#ifdef _MSC_VER // MSVC
 	#define NAME_PATTERN_1(name, pattern_name, pattern, ...) \
 		PatternWrapper{ pattern_name, ptn_ ## name ## _1 }
 	#define NAME_PATTERN_2(name, pattern_name, pattern, ...) \
@@ -208,6 +208,31 @@ namespace patterns
 	#define NAME_PATTERN_8(name, pattern_name, pattern, ...) \
 		PatternWrapper{ pattern_name, ptn_ ## name ## _8 }, \
 		CONCATENATE(NAME_PATTERN_7(name, __VA_ARGS__),)
+#else // Not MSVC
+	#define NAME_PATTERN_1(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _1 }
+	#define NAME_PATTERN_2(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _2 }, \
+		NAME_PATTERN_1(name, __VA_ARGS__)
+	#define NAME_PATTERN_3(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _3 }, \
+		NAME_PATTERN_2(name, __VA_ARGS__)
+	#define NAME_PATTERN_4(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _4 }, \
+		NAME_PATTERN_3(name, __VA_ARGS__)
+	#define NAME_PATTERN_5(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _5 }, \
+		NAME_PATTERN_4(name, __VA_ARGS__)
+	#define NAME_PATTERN_6(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _6 }, \
+		NAME_PATTERN_5(name, __VA_ARGS__)
+	#define NAME_PATTERN_7(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _7 }, \
+		NAME_PATTERN_6(name, __VA_ARGS__)
+	#define NAME_PATTERN_8(name, pattern_name, pattern, ...) \
+		PatternWrapper{ pattern_name, ptn_ ## name ## _8 }, \
+		NAME_PATTERN_7(name, __VA_ARGS__)
+#endif
 
 	#define FOR_EACH2_RSEQ_N 8, 0, 7, 0, 6, 0, 5, 0, 4, 0, 3, 0, 2, 0, 1
 	#define FOR_EACH2_ARG_N(__1, __1_, __2, __2_, __3, __3_, __4, __4_, __5, __5_, __6, __6_, __7, __7_, __8, __8_, N, ...) N
@@ -217,8 +242,13 @@ namespace patterns
 	#define MAKE_PATTERNS_(N, ...) CONCATENATE(CONCATENATE(MAKE_PATTERN_, N)(__VA_ARGS__),)
 	#define MAKE_PATTERNS(name, ...) MAKE_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
 
+#ifdef _MSC_VER // MSVC
 	#define NAME_PATTERNS_(N, ...) CONCATENATE(CONCATENATE(NAME_PATTERN_, N)(__VA_ARGS__),)
 	#define NAME_PATTERNS(name, ...) NAME_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
+#else // Not MSVC
+	#define NAME_PATTERNS_(N, ...) CONCATENATE(NAME_PATTERN_, N)(__VA_ARGS__)
+	#define NAME_PATTERNS(name, ...) NAME_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
+#endif
 
 	/*
 	 * Defines an array of compile-time patterns.

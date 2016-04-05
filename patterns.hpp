@@ -186,7 +186,7 @@ namespace patterns
 
 	/*
 	 * Cannot concatenate with empty in a way compatible with non-MSVC
-	 * here because there are commas inside the macros.
+	 * here because there are commas inside of the macros.
 	 */
 #ifdef _MSC_VER // MSVC
 	#define NAME_PATTERN_1(name, pattern_name, pattern, ...) \

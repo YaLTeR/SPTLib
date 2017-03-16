@@ -55,6 +55,8 @@ namespace patterns
 		char mask[PatternLength];
 
 		constexpr Pattern(const char* pattern)
+			: bytes()
+			, mask()
 		{
 			// Note that some input validation is absent from here,
 			// because the input is expected to have already been validated in count_bytes().

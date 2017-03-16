@@ -16,88 +16,74 @@ namespace patterns
 		{
 			return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 		}
-
-		template<typename T, size_t N, size_t... Is>
-		constexpr std::array<T, N + 1> push_front(const std::array<T, N>& arr, const T& val, std::index_sequence<Is...>)
-		{
-			return{ val, arr[Is]... };
-		}
-
-		template<typename T, size_t N>
-		constexpr std::array<T, N + 1> push_front(const std::array<T, N>& arr, const T& val)
-		{
-			return push_front(arr, val, std::make_index_sequence<N>());
-		}
-
-		template<size_t PatternLength>
-		constexpr std::array<uint8_t, PatternLength> pattern_bytes(const char* pattern)
-		{
-			return (pattern[0] == '?')
-				? (pattern[1] == '?'
-					? push_front(pattern_bytes<PatternLength - 1>(pattern + 2), static_cast<uint8_t>(0))
-					: throw std::logic_error("the second question mark is missing"))
-				: (ishex(pattern[0]))
-					? (ishex(pattern[1])
-						? push_front(pattern_bytes<PatternLength - 1>(pattern + 2), static_cast<uint8_t>(hex(pattern[0]) * 16 + hex(pattern[1])))
-						: throw std::logic_error("the second hex digit is missing"))
-					: (pattern[0] == ' ')
-						? pattern_bytes<PatternLength>(pattern + 1)
-						: throw std::domain_error("only hex digits, spaces and question marks are allowed");
-		}
-
-		template<>
-		constexpr std::array<uint8_t, 0> pattern_bytes(const char*)
-		{
-			return std::array<uint8_t, 0>();
-		}
-
-		template<size_t PatternLength>
-		constexpr std::array<char, PatternLength> pattern_mask(const char* pattern)
-		{
-			return (pattern[0] == '?')
-				? (pattern[1] == '?'
-					? push_front(pattern_mask<PatternLength - 1>(pattern + 2), '?')
-					: throw std::logic_error("the second question mark is missing"))
-				: (ishex(pattern[0]))
-					? (ishex(pattern[1])
-						? push_front(pattern_mask<PatternLength - 1>(pattern + 2), 'x')
-						: throw std::logic_error("the second hex digit is missing"))
-					: (pattern[0] == ' ')
-						? pattern_mask<PatternLength>(pattern + 1)
-						: throw std::domain_error("only hex digits, spaces and question marks are allowed");
-		}
-
-		template<>
-		constexpr std::array<char, 0> pattern_mask(const char*)
-		{
-			return std::array<char, 0>();
-		}
 	}
 
-	constexpr size_t count_bytes(const char* pattern, size_t N)
+	constexpr size_t count_bytes(const char* pattern)
 	{
-		return (N <= 2) ? 0
-			: (pattern[0] == '?' || detail::ishex(pattern[0]))
-				? count_bytes(pattern + 2, N - 2) + 1
-				: count_bytes(pattern + 1, N - 1);
-	}
+		size_t count = 0;
 
-	template<size_t N>
-	constexpr size_t count_bytes(const char (&pattern)[N])
-	{
-		return count_bytes(pattern, N);
+		for (; pattern[0]; ++pattern) {
+			if (pattern[0] == ' ')
+				continue;
+
+			if (detail::ishex(pattern[0])) {
+				if (!detail::ishex((++pattern)[0]))
+					throw std::logic_error("the second hex digit is missing");
+
+				++count;
+				continue;
+			}
+
+			if (pattern[0] == '?') {
+				if ((++pattern)[0] != '?')
+					throw std::logic_error("the second question mark is missing");
+
+				++count;
+				continue;
+			}
+
+			throw std::domain_error("only hex digits, spaces and question marks are allowed");
+		}
+
+		return count;
 	}
 
 	template<size_t PatternLength>
 	struct Pattern
 	{
-		const std::array<uint8_t, PatternLength> bytes;
-		const std::array<char, PatternLength> mask;
+		uint8_t bytes[PatternLength];
+		char mask[PatternLength];
 
 		constexpr Pattern(const char* pattern)
-			: bytes(detail::pattern_bytes<PatternLength>(pattern))
-			, mask(detail::pattern_mask<PatternLength>(pattern))
 		{
+			// Note that some input validation is absent from here,
+			// because the input is expected to have already been validated in count_bytes().
+			size_t i = 0;
+
+			for (; pattern[0]; ++pattern) {
+				if (pattern[0] == ' ')
+					continue;
+
+				if (detail::ishex(pattern[0])) {
+					bytes[i] = detail::hex(pattern[0]) * 16 + detail::hex(pattern[1]);
+					mask[i++] = 'x';
+
+					++pattern;
+					continue;
+				}
+
+				if (pattern[0] == '?') {
+					mask[i++] = '?';
+
+					++pattern;
+					continue;
+				}
+
+				throw std::domain_error("only hex digits, spaces and question marks are allowed");
+			}
+
+			if (i != PatternLength)
+				throw std::logic_error("wrong pattern length");
 		}
 	};
 
@@ -115,8 +101,8 @@ namespace patterns
 		template<size_t PatternLength>
 		constexpr PatternWrapper(const char* name, const Pattern<PatternLength>& pattern)
 			: name_(name)
-			, bytes(&pattern.bytes.front())
-			, mask(&pattern.mask.front())
+			, bytes(pattern.bytes)
+			, mask(pattern.mask)
 			, length_(PatternLength)
 		{
 		}

@@ -82,7 +82,13 @@ namespace MemUtils
 		{
 			void *start, *end;
 			char filename[PATH_MAX + 1];
-			fgets(buf, sizeof(buf), mapsFile);
+			
+			if (fgets(buf, sizeof(buf), mapsFile) == nullptr)
+			{
+				EngineDevWarning("Could not read /proc/self/maps.\n");
+				return false;
+			}
+
 			if (sscanf(buf, "%p-%p %*s %*s %*s %*s %s", &start, &end, filename) == 3)
 			{
 				if (!strcmp(filename, path.c_str()))

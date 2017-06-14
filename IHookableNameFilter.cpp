@@ -6,7 +6,8 @@
 
 bool IHookableNameFilter::CanHook(const std::wstring& moduleFullName)
 {
-	return (m_Names.find( GetFileName(moduleFullName) ) != m_Names.end());
+	const auto filename = GetFileName(moduleFullName);
+	return (filename != GetName() && m_Names.find(filename) != m_Names.end());
 }
 
 void IHookableNameFilter::TryHookAll(bool needToIntercept)

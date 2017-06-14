@@ -16,6 +16,9 @@ _dlsym ORIG_dlsym;
 
 namespace Hooks
 {
+	static std::unordered_map<void*, size_t> dl_refcount;
+	static std::mutex dl_refcount_mutex;
+
 	static void* get_dlsym_addr()
 	{
 		std::pair<void*, std::string> p = { nullptr, std::string() };
@@ -96,6 +99,11 @@ namespace Hooks
 		if (DebugEnabled())
 			EngineDevMsg("Engine call: dlopen( \"%s\", %d ) => %p\n", filename, flag, rv);
 
+		if (rv) {
+			std::lock_guard<std::mutex> lock(dl_refcount_mutex);
+			++dl_refcount[rv];
+		}
+
 		if (rv && filename)
 			HookModule(Convert(filename));
 
@@ -107,9 +115,24 @@ namespace Hooks
 		if (!ORIG_dlclose)
 			ORIG_dlclose = reinterpret_cast<_dlclose>(dlsym(RTLD_NEXT, "dlclose"));
 
-		for (auto it = modules.cbegin(); it != modules.cend(); ++it)
-			if ((*it)->GetHandle() == handle)
-				(*it)->Unhook();
+		bool unhook = false;
+		{
+			std::lock_guard<std::mutex> lock(dl_refcount_mutex);
+
+			auto refcount_it = dl_refcount.find(handle);
+			if (refcount_it != dl_refcount.end()) {
+				if (refcount_it->second > 0)
+					--refcount_it->second;
+
+				if (refcount_it->second == 0)
+					unhook = true;
+			}
+		}
+
+		if (unhook)
+			for (auto it = modules.cbegin(); it != modules.cend(); ++it)
+				if ((*it)->GetHandle() == handle)
+					(*it)->Unhook();
 
 		auto rv = ORIG_dlclose(handle);
 		if (DebugEnabled())

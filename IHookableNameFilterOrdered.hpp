@@ -13,6 +13,7 @@ public:
 	IHookableNameFilterOrdered(const std::vector<std::wstring>& moduleNames) : m_Names(moduleNames), m_HookedNumber(m_Names.size()) {};
 	virtual bool CanHook(const std::wstring& moduleFullName);
 	virtual void TryHookAll(bool needToIntercept);
+	virtual void Clear();
 
 protected:
 	std::vector<std::wstring> m_Names;

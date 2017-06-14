@@ -20,7 +20,7 @@ bool IHookableNameFilterOrdered::CanHook(const std::wstring& moduleFullName)
 		number++;
 	}
 
-	return found && number <= m_HookedNumber;
+	return found && number < m_HookedNumber;
 }
 
 void IHookableNameFilterOrdered::TryHookAll(bool needToIntercept)
@@ -40,4 +40,10 @@ void IHookableNameFilterOrdered::TryHookAll(bool needToIntercept)
 		}
 		number++;
 	}
+}
+
+void IHookableNameFilterOrdered::Clear()
+{
+	m_HookedNumber = m_Names.size();
+	IHookableModule::Clear();
 }

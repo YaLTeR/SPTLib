@@ -40,9 +40,9 @@ namespace patterns
 
 				++count;
 				continue;
+			} else {
+				throw std::domain_error("only hex digits, spaces and question marks are allowed");
 			}
-
-			throw std::domain_error("only hex digits, spaces and question marks are allowed");
 		}
 
 		return count;

@@ -144,6 +144,12 @@ namespace patterns
 	#define CONCATENATE1(arg1, arg2) arg1 ## arg2
 	#define CONCATENATE(arg1, arg2) CONCATENATE1(arg1, arg2)
 
+#define AUTOGEN_PATTERN_MACROS
+
+#ifdef AUTOGEN_PATTERN_MACROS
+#include "patterns_macros.hpp"
+#else
+
 	/*
 	 * Concatenate with empty because otherwise the MSVC preprocessor
 	 * puts all __VA_ARGS__ arguments into the first one.
@@ -171,7 +177,6 @@ namespace patterns
 	#define MAKE_PATTERN_8(name, pattern_name, pattern, ...) \
 		static constexpr auto ptn_ ## name ## _8 = PATTERN(pattern); \
 		CONCATENATE(MAKE_PATTERN_7(name, __VA_ARGS__),)
-
 	/*
 	 * Cannot concatenate with empty in a way compatible with non-MSVC
 	 * here because there are commas inside of the macros.
@@ -228,6 +233,8 @@ namespace patterns
 
 	#define FOR_EACH2_RSEQ_N 8, 0, 7, 0, 6, 0, 5, 0, 4, 0, 3, 0, 2, 0, 1
 	#define FOR_EACH2_ARG_N(__1, __1_, __2, __2_, __3, __3_, __4, __4_, __5, __5_, __6, __6_, __7, __7_, __8, __8_, N, ...) N
+#endif
+
 	#define FOR_EACH2_NARG_(...) CONCATENATE(FOR_EACH2_ARG_N(__VA_ARGS__),)
 	#define FOR_EACH2_NARG(...) FOR_EACH2_NARG_(__VA_ARGS__, FOR_EACH2_RSEQ_N)
 

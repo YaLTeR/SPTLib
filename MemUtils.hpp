@@ -1,5 +1,6 @@
 #pragma once
 
+#include <wchartypes.h>
 #include "patterns.hpp"
 
 namespace MemUtils

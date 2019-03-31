@@ -34,7 +34,7 @@ namespace MemUtils
 		// Not implemented.
 	}
 
-	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
+	void ReplaceBytes(void* addr, size_t length, const uint8_t* newBytes)
 	{
 		static auto pagesize = sysconf(_SC_PAGESIZE);
 		size_t protectLength = length + (reinterpret_cast<uintptr_t>(addr) % pagesize);
@@ -43,7 +43,7 @@ namespace MemUtils
 			EngineDevWarning("Failed to protect memory: %s\n", strerror(errno));
 
 		for (size_t i = 0; i < length; ++i)
-			*(reinterpret_cast<byte*>(addr)+i) = newBytes[i];
+			*(reinterpret_cast<uint8_t*>(addr)+i) = newBytes[i];
 
 		// TODO: Restore original protect.
 	}

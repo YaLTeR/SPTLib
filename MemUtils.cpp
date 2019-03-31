@@ -35,7 +35,7 @@ namespace MemUtils
 	{
 		auto oldFunction = vtable[index];
 
-		ReplaceBytes(&(vtable[index]), sizeof(void*), reinterpret_cast<byte*>(&function));
+		ReplaceBytes(&(vtable[index]), sizeof(void*), reinterpret_cast<uint8_t*>(&function));
 
 		return oldFunction;
 	}

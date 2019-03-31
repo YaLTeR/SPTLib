@@ -10,6 +10,7 @@
 #pragma comment( lib, "psapi.lib" )
 #endif
 
+#include <cassert>
 #include <clocale>
 #include <cstddef>
 #include <cstdint>

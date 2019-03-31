@@ -66,16 +66,16 @@ namespace DetoursUtils
 		if (status == MH_OK)
 		{
 			EngineDevMsg(
-				"Hooked %zu %s function%s.\n",
-				hook_count,
+				"Hooked %u %s function%s.\n",
+				static_cast<unsigned int>(hook_count),
 				Convert(moduleName).c_str(),
 				hook_count > 1 ? "s" : "");
 		}
 		else
 		{
 			EngineWarning(
-				"Error applying %zu queued hooks for %s: %s.\n",
-				hook_count,
+				"Error applying %u queued hooks for %s: %s.\n",
+				static_cast<unsigned int>(hook_count),
 				Convert(moduleName).c_str(),
 				MH_StatusToString(status));
 		}
@@ -118,8 +118,8 @@ namespace DetoursUtils
 		if (hook_count)
 		{
 			EngineDevMsg(
-				"Unhooked %zu %s function%s.\n",
-				hook_count,
+				"Unhooked %u %s function%s.\n",
+				static_cast<unsigned int>(hook_count),
 				Convert(moduleName).c_str(),
 				hook_count > 1 ? "s" : "");
 		} else

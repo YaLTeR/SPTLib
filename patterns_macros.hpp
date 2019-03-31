@@ -1,5 +1,9 @@
 // This file has been automatically generated using autogen_pattern_macros.py
 
+/*
+* Concatenate with empty because otherwise the MSVC preprocessor
+* puts all __VA_ARGS__ arguments into the first one.
+*/
 #define MAKE_PATTERN_1(name, pattern_name, pattern, ...) static constexpr auto ptn_ ## name ## _1 = PATTERN(pattern);
 #define MAKE_PATTERN_2(name, pattern_name, pattern, ...) static constexpr auto ptn_ ## name ## _2 = PATTERN(pattern); CONCATENATE(MAKE_PATTERN_1(name, __VA_ARGS__),)
 #define MAKE_PATTERN_3(name, pattern_name, pattern, ...) static constexpr auto ptn_ ## name ## _3 = PATTERN(pattern); CONCATENATE(MAKE_PATTERN_2(name, __VA_ARGS__),)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "wchartypes.h"
 #include "patterns.hpp"
 
 namespace MemUtils
@@ -182,7 +181,7 @@ namespace MemUtils
 	}
 	void MarkAsExecutable(void* addr);
 
-	void ReplaceBytes(void* addr, size_t length, const byte* newBytes);
+	void ReplaceBytes(void* addr, size_t length, const uint8_t* newBytes);
 	void* HookVTable(void** vtable, size_t index, const void* function);
 
 	void AddSymbolLookupHook(void* moduleHandle, void* original, void* target);

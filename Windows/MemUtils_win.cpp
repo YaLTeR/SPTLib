@@ -52,13 +52,13 @@ namespace MemUtils
 		VirtualProtect(addr, 1, protect, &temp);
 	}
 
-	void ReplaceBytes(void* addr, size_t length, const byte* newBytes)
+	void ReplaceBytes(void* addr, size_t length, const uint8_t* newBytes)
 	{
 		DWORD dwOldProtect;
 		auto result = VirtualProtect(addr, length, PAGE_EXECUTE_READWRITE, &dwOldProtect);
 
 		for (size_t i = 0; i < length; ++i)
-			*(reinterpret_cast<byte*>(addr)+i) = newBytes[i];
+			*(reinterpret_cast<uint8_t*>(addr) + i) = newBytes[i];
 
 		// The first call might have failed, but the target might have still been accessible.
 		if (result)

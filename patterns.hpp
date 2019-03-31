@@ -144,8 +144,6 @@ namespace patterns
 	#define CONCATENATE1(arg1, arg2) arg1 ## arg2
 	#define CONCATENATE(arg1, arg2) CONCATENATE1(arg1, arg2)
 
-#define AUTOGEN_PATTERN_MACROS
-
 #ifdef AUTOGEN_PATTERN_MACROS
 #include "patterns_macros.hpp"
 #else

@@ -1,7 +1,6 @@
 #include "sptlib-stdafx.hpp"
 
 #include "MemUtils.hpp"
-#include <assert.h>
 #include "sptlib.hpp"
 
 namespace MemUtils

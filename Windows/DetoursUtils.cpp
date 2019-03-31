@@ -1,7 +1,6 @@
 #include "../sptlib-stdafx.hpp"
 
 #include "../sptlib.hpp"
-#include <assert.h>
 #include "DetoursUtils.hpp"
 
 namespace DetoursUtils
@@ -68,7 +67,7 @@ namespace DetoursUtils
 		{
 			EngineDevMsg(
 				"Hooked %u %s function%s.\n",
-				hook_count,
+				static_cast<unsigned int>(hook_count),
 				Convert(moduleName).c_str(),
 				hook_count > 1 ? "s" : "");
 		}
@@ -76,7 +75,7 @@ namespace DetoursUtils
 		{
 			EngineWarning(
 				"Error applying %u queued hooks for %s: %s.\n",
-				hook_count,
+				static_cast<unsigned int>(hook_count),
 				Convert(moduleName).c_str(),
 				MH_StatusToString(status));
 		}
@@ -120,7 +119,7 @@ namespace DetoursUtils
 		{
 			EngineDevMsg(
 				"Unhooked %u %s function%s.\n",
-				hook_count,
+				static_cast<unsigned int>(hook_count),
 				Convert(moduleName).c_str(),
 				hook_count > 1 ? "s" : "");
 		} else

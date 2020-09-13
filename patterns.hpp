@@ -138,7 +138,7 @@ namespace patterns
 	template<class... Pattern>
 	constexpr std::array<PatternWrapper, sizeof...(Pattern)> make_pattern_array(const Pattern&... patterns)
 	{
-		return{ PatternWrapper(patterns)... };
+		return{ patterns... };
 	}
 
 	#define CONCATENATE1(arg1, arg2) arg1 ## arg2

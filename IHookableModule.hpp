@@ -14,6 +14,8 @@ public:
 	virtual bool CanHook(const std::wstring& moduleFullName) = 0;
 	virtual void* GetHandle();
 	virtual std::wstring GetName();
+	virtual void* GetBase();
+	virtual size_t GetLength();
 
 	virtual void Hook(const std::wstring& moduleName, void* moduleHandle, void* moduleBase, size_t moduleLength, bool needToIntercept) = 0;
 	virtual void Unhook() = 0;

@@ -12,6 +12,16 @@ std::wstring IHookableModule::GetName()
 	return m_Name;
 }
 
+void* IHookableModule::GetBase()
+{
+	return m_Base;
+}
+
+size_t IHookableModule::GetLength()
+{
+	return m_Length;
+}
+
 void IHookableModule::Clear()
 {
 	m_Handle = nullptr;

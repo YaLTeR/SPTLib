@@ -6,7 +6,13 @@
 
 namespace Hooks
 {
+#ifdef _WIN32
 	std::vector<IHookableModule*> modules;
+#else
+	// Priority must be higher than that of `Construct()` in Bunnymod XT's main_linux.cpp
+	std::vector<IHookableModule*> modules __attribute__((init_priority(101)));
+#endif
+
 	static bool intercepted;
 
 	bool DebugEnabled()

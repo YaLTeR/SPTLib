@@ -173,7 +173,45 @@ namespace MemUtils
 			return it;
 		});
 	}
-	
+
+	template<typename Iterator>
+	std::vector<MatchedPattern> find_all_sequences(const void* start, size_t length, Iterator begin, Iterator end)
+	{
+		std::vector<MatchedPattern> result;
+		for (auto pattern = begin; pattern != end; ++pattern)
+		{
+			const void* currentStart = start;
+			size_t currentLength = length;
+			uintptr_t address;
+			do
+			{
+				address = find_pattern(currentStart, currentLength, *pattern);
+				if (address)
+				{
+					MatchedPattern match;
+					match.ptnIndex = pattern - begin;
+					match.ptr = address;
+
+					result.push_back(match);
+					currentStart = reinterpret_cast<void*>(address + 1);
+					currentLength = reinterpret_cast<uintptr_t>(start)
+					                - reinterpret_cast<uintptr_t>(currentStart) + length;
+				}
+			} while (address);
+		}
+
+		return result;
+	}
+
+	template<typename Iterator>
+	std::future<std::vector<MatchedPattern>> find_all_sequences_async(const void* start,
+	                                                                  size_t length,
+	                                                                  Iterator begin,
+	                                                                  Iterator end)
+	{
+		return std::async(find_all_sequences<Iterator>, start, length, begin, end);
+	}
+
 	template<typename T>
 	inline void MarkAsExecutable(T addr)
 	{

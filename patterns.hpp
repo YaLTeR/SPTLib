@@ -138,7 +138,7 @@ namespace patterns
 	struct MatchedPattern
 	{
 		uintptr_t ptr;
-		int ptnIndex;
+		size_t ptnIndex;
 	};
 
 	template<class... Pattern>

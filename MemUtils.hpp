@@ -194,8 +194,9 @@ namespace MemUtils
 
 					result.push_back(match);
 					currentStart = reinterpret_cast<void*>(address + 1);
-					currentLength = reinterpret_cast<uintptr_t>(start)
-					                - reinterpret_cast<uintptr_t>(currentStart) + length;
+					currentLength = length
+					                - (reinterpret_cast<uintptr_t>(currentStart)
+					                   - reinterpret_cast<uintptr_t>(start));
 				}
 			} while (address);
 		}

@@ -135,6 +135,12 @@ namespace patterns
 		}
 	};
 
+	struct MatchedPattern
+	{
+		uintptr_t ptr;
+		size_t ptnIndex;
+	};
+
 	template<class... Pattern>
 	constexpr std::array<PatternWrapper, sizeof...(Pattern)> make_pattern_array(const Pattern&... patterns)
 	{

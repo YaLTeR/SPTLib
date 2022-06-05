@@ -66,23 +66,19 @@ namespace MemUtils
 		Iterator end,
 		uintptr_t& address)
 	{
-		auto pattern = find_first_sequence(start, length, begin, end, address);
-		if (pattern != end) {
-			// length != 0
-			// start <= addr < start + length
-			// 0 <= addr - start < length
-			// 1 <= addr - start + 1 < length + 1
-			// -length - 1 < -(addr - start + 1) <= -1
-			// 0 <= length - (addr - start + 1) <= length - 1
-			auto new_length = length - (address - reinterpret_cast<uintptr_t>(start) + 1);
+		for (auto pattern = begin; pattern != end; ++pattern) {
+			address = find_pattern(start, length, *pattern);
+			if (address)
+			{
+				// Check if match is ambiguous for pattern
+				auto new_length = length - (address - reinterpret_cast<uintptr_t>(start) + 1);
+				auto address2 = find_pattern(reinterpret_cast<const void*>(address + 1), new_length, *pattern);
 
-			uintptr_t temp;
-			if (find_first_sequence(reinterpret_cast<const void*>(address + 1), new_length, begin, end, temp) != end) {
-				// Ambiguous.
-				address = 0;
-				return end;
-			} else {
-				return pattern;
+				if (!address2)
+				{
+					// No 2nd match found, report unique match
+					return pattern;
+				}
 			}
 		}
 

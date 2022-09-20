@@ -127,7 +127,7 @@ namespace MemUtils
 		dl_iterate_phdr([](dl_phdr_info* i, size_t s, void* data) -> int {
 			if (i->dlpi_name[0])
 			{
-				auto handle = ORIG_dlopen(i->dlpi_name, RTLD_NOLOAD);
+				auto handle = ORIG_dlopen(i->dlpi_name, RTLD_LAZY | RTLD_NOLOAD);
 				ORIG_dlclose(handle);
 
 				auto p = reinterpret_cast<std::pair<void*, const std::wstring*>*>(data);
@@ -155,7 +155,7 @@ namespace MemUtils
 		dl_iterate_phdr([](dl_phdr_info* i, size_t s, void* data) -> int {
 			if (i->dlpi_name[0])
 			{
-				auto handle = ORIG_dlopen(i->dlpi_name, RTLD_NOLOAD);
+				auto handle = ORIG_dlopen(i->dlpi_name, RTLD_LAZY | RTLD_NOLOAD);
 				ORIG_dlclose(handle);
 
 				auto p = reinterpret_cast<std::pair<void*, std::string>*>(data);
@@ -176,7 +176,7 @@ namespace MemUtils
 		dl_iterate_phdr([](dl_phdr_info* i, size_t s, void* data) -> int {
 			if (i->dlpi_name[0])
 			{
-				auto handle = ORIG_dlopen(i->dlpi_name, RTLD_NOLOAD);
+				auto handle = ORIG_dlopen(i->dlpi_name, RTLD_LAZY | RTLD_NOLOAD);
 				ORIG_dlclose(handle);
 				reinterpret_cast<std::vector<void*>*>(data)->push_back(handle);
 			}

@@ -80,12 +80,6 @@ namespace Hooks
 
 	static BOOL WINAPI HOOKED_FreeLibrary(HMODULE hModule)
 	{
-		for (auto it = modules.cbegin(); it != modules.cend(); ++it)
-		{
-			if ((*it)->GetHandle() == hModule)
-				(*it)->Unhook();
-		}
-
 		BOOL rv = ORIG_FreeLibrary(hModule);
 
 		if (DebugEnabled())

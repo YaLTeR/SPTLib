@@ -16,8 +16,15 @@ _dlsym ORIG_dlsym;
 
 namespace Hooks
 {
-	static std::unordered_map<void*, size_t> dl_refcount;
-	static std::mutex dl_refcount_mutex;
+	static std::mutex& dl_refcount_mutex() {
+		static std::mutex value;
+		return value;
+	};
+
+	static std::unordered_map<void*, size_t>& dl_refcount() {
+		static std::unordered_map<void*, size_t> value;
+		return value;
+	}
 
 	static void* get_dlsym_addr(const wchar_t *library)
 	{
@@ -106,8 +113,8 @@ namespace Hooks
 			EngineDevMsg("Engine call: dlopen( \"%s\", %d ) => %p\n", filename, flag, rv);
 
 		if (rv) {
-			std::lock_guard<std::mutex> lock(dl_refcount_mutex);
-			++dl_refcount[rv];
+			std::lock_guard<std::mutex> lock(dl_refcount_mutex());
+			++dl_refcount()[rv];
 		}
 
 		if (rv && filename)
@@ -123,10 +130,10 @@ namespace Hooks
 
 		bool unhook = false;
 		{
-			std::lock_guard<std::mutex> lock(dl_refcount_mutex);
+			std::lock_guard<std::mutex> lock(dl_refcount_mutex());
 
-			auto refcount_it = dl_refcount.find(handle);
-			if (refcount_it != dl_refcount.end()) {
+			auto refcount_it = dl_refcount().find(handle);
+			if (refcount_it != dl_refcount().end()) {
 				if (refcount_it->second > 0)
 					--refcount_it->second;
 

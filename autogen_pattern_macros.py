@@ -47,17 +47,17 @@ def write_FOR_EACH2_ARG_N_REC(fp, n, i):
         write_FOR_EACH2_ARG_N_REC(fp,n,i+1)
 
 def write_file(n):
-    with open("patterns_macros.hpp", "w") as fp:
+    with open("patterns_macros.hpp", "w", newline='\n') as fp:
         fp.write("// This file has been automatically generated using autogen_pattern_macros.py\n\n")
         fp.write("/*\n\
 * Concatenate with empty because otherwise the MSVC preprocessor\n\
 * puts all __VA_ARGS__ arguments into the first one.\n*/\n")
         write_make_patterns(fp, n, 1)
-        fp.write("#ifdef _MSC_VER\n");
+        fp.write("#if !defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL\n");
         write_name_patterns(fp, n, 1, True)
         fp.write("#else\n");
         write_name_patterns(fp, n, 1, False)  
-        fp.write("#endif // _MSC_VER\n");
+        fp.write("#endif // !defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL\n");
         write_FOR_EACH2_ARG_N(fp, n)
         write_FOR_EACH2_RSEQ_N(fp, n)
 

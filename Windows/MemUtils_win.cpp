@@ -109,7 +109,7 @@ namespace MemUtils
 
 		if (EnumProcessModules(GetCurrentProcess(), modules, sizeof(modules), &sizeNeeded))
 		{
-			sizeNeeded = std::min(1024ul, (sizeNeeded / sizeof(HMODULE)));
+			sizeNeeded = std::min(1024ul, (sizeNeeded / static_cast<DWORD>(sizeof(HMODULE))));
 			for (unsigned long i = 0; i < sizeNeeded; ++i)
 				out.push_back(modules[i]);
 		}

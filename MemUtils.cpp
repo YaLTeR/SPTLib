@@ -16,7 +16,7 @@ namespace MemUtils
 		// The object is leaked (this is meant to be used only for global stuff anyway).
 		// Some stuff calls dlclose after the destructors have been run, so destroying the
 		// object here leads to crashes.
-		~LazilyConstructed() {}
+		~LazilyConstructed() = default;
 
 		T& get() {
 			if (!object)

@@ -10,7 +10,7 @@ bool IHookableNameFilterOrdered::CanHook(const std::wstring& moduleFullName)
 	size_t number = 0;
 	bool found = false;
 	auto filename = GetFileName(moduleFullName);
-	for (auto name : m_Names)
+	for (auto &name : m_Names)
 	{
 		if (name == filename)
 		{
@@ -26,7 +26,7 @@ bool IHookableNameFilterOrdered::CanHook(const std::wstring& moduleFullName)
 void IHookableNameFilterOrdered::TryHookAll(bool needToIntercept)
 {
 	size_t number = 0;
-	for (auto name : m_Names)
+	for (auto &name : m_Names)
 	{
 		void* handle;
 		void* start;

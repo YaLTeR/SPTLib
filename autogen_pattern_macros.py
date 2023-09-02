@@ -53,11 +53,11 @@ def write_file(n):
 * Concatenate with empty because otherwise the MSVC preprocessor\n\
 * puts all __VA_ARGS__ arguments into the first one.\n*/\n")
         write_make_patterns(fp, n, 1)
-        fp.write("#if !defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL\n");
+        fp.write("#if defined(_MSC_VER) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL)\n");
         write_name_patterns(fp, n, 1, True)
         fp.write("#else\n");
         write_name_patterns(fp, n, 1, False)  
-        fp.write("#endif // !defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL\n");
+        fp.write("#endif // defined(_MSC_VER) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL)\n");
         write_FOR_EACH2_ARG_N(fp, n)
         write_FOR_EACH2_RSEQ_N(fp, n)
 

@@ -18,6 +18,7 @@ namespace MemUtils
 		}
 	}
 
+	template<>
 	void MarkAsExecutable(void* addr)
 	{
 		if (!addr)

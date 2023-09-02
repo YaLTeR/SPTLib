@@ -29,6 +29,7 @@ namespace MemUtils
 		}
 	}
 
+	template<>
 	void MarkAsExecutable(void* addr)
 	{
 		// Not implemented.

@@ -218,6 +218,7 @@ namespace MemUtils
 	{
 		MarkAsExecutable(reinterpret_cast<void*>(addr));
 	}
+	template<>
 	void MarkAsExecutable(void* addr);
 
 	void ReplaceBytes(void* addr, size_t length, const uint8_t* newBytes);

@@ -158,10 +158,10 @@ namespace patterns
 	#define MAKE_PATTERNS_(N, ...) CONCATENATE(CONCATENATE(MAKE_PATTERN_, N)(__VA_ARGS__),)
 	#define MAKE_PATTERNS(name, ...) MAKE_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
 
-#ifdef _MSC_VER // MSVC
+#if defined(_MSC_VER) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL)
 	#define NAME_PATTERNS_(N, ...) CONCATENATE(CONCATENATE(NAME_PATTERN_, N)(__VA_ARGS__),)
 	#define NAME_PATTERNS(name, ...) NAME_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
-#else // Not MSVC
+#else
 	#define NAME_PATTERNS_(N, ...) CONCATENATE(NAME_PATTERN_, N)(__VA_ARGS__)
 	#define NAME_PATTERNS(name, ...) NAME_PATTERNS_(FOR_EACH2_NARG(__VA_ARGS__), name, __VA_ARGS__)
 #endif

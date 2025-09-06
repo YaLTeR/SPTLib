@@ -83,35 +83,57 @@ namespace DetoursUtils
 
 	void DetachDetours(const wstring& moduleName, size_t n, void** const functions[])
 	{
-		size_t hook_count = 0;
-		for (size_t i = 0; i < n; ++i)
+		struct HookPair
 		{
-			void** tramp = functions[i];
-			assert(tramp);
+			void** pTramp;
+			void* original;
+		};
+		std::vector<HookPair> hooks;
+		hooks.reserve(n);
 
-			if (*tramp)
+		{
+			lock_guard<mutex> lock(tramp_to_original_mutex);
+			for (size_t i = 0; i < n; ++i)
 			{
-				void* original;
-				{
-					lock_guard<mutex> lock(tramp_to_original_mutex);
-					original = tramp_to_original[*tramp];
-					tramp_to_original.erase(*tramp);
-				}
+				void** tramp = functions[i];
+				if (!tramp || !*tramp)
+					continue;
 
-				auto status = MH_RemoveHook(original);
-				if (status != MH_OK)
+				auto it = tramp_to_original.find(*tramp);
+				if (it == tramp_to_original.end())
 				{
-					EngineWarning(
-						"Error unhooking %s!0x%p => 0x%p: %s.\n",
-						Convert(moduleName).c_str(),
-						original,
-						*tramp,
-						MH_StatusToString(status));
+					EngineWarning("Error unhooking %s!0x%p missing mapping for trampoline.\n",
+					              Convert(moduleName).c_str(),
+					              *tramp);
 					continue;
 				}
+				hooks.push_back({tramp, it->second});
+				tramp_to_original.erase(it);
+			}
+		}
 
-				*tramp = original;
+		// Even if queue disable failed, we will still call remove hook later. Report errors there.
+		for (const auto& h : hooks)
+			MH_QueueDisableHook(h.original);
+
+		MH_ApplyQueued();
+
+		size_t hook_count = 0;
+		for (const auto& h : hooks)
+		{
+			auto status = MH_RemoveHook(h.original);
+			if (status == MH_OK)
+			{
+				*h.pTramp = h.original;
 				hook_count++;
+			}
+			else
+			{
+				EngineWarning("Error removing %s!0x%p => 0x%p: %s.\n",
+				              Convert(moduleName).c_str(),
+				              h.original,
+				              *h.pTramp,
+				              MH_StatusToString(status));
 			}
 		}
 
